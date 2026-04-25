@@ -1,0 +1,544 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "eslint.config.js",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\eslint.config.js",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_eslint_config_js",
+      "community": 11,
+      "norm_label": "eslint.config.js"
+    },
+    {
+      "label": "seedRooms.js",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\seedRooms.js",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_seedrooms_js",
+      "community": 3,
+      "norm_label": "seedrooms.js"
+    },
+    {
+      "label": "seed()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\seedRooms.js",
+      "source_location": "L15",
+      "id": "seedrooms_seed",
+      "community": 3,
+      "norm_label": "seed()"
+    },
+    {
+      "label": "testSupabase.js",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\testSupabase.js",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_testsupabase_js",
+      "community": 4,
+      "norm_label": "testsupabase.js"
+    },
+    {
+      "label": "testConnection()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\testSupabase.js",
+      "source_location": "L10",
+      "id": "testsupabase_testconnection",
+      "community": 4,
+      "norm_label": "testconnection()"
+    },
+    {
+      "label": "vite.config.js",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\vite.config.js",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_vite_config_js",
+      "community": 12,
+      "norm_label": "vite.config.js"
+    },
+    {
+      "label": "App.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_app_jsx",
+      "community": 2,
+      "norm_label": "app.jsx"
+    },
+    {
+      "label": "SignupGuard()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
+      "source_location": "L16",
+      "id": "app_signupguard",
+      "community": 2,
+      "norm_label": "signupguard()"
+    },
+    {
+      "label": "ComingSoon()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
+      "source_location": "L38",
+      "id": "app_comingsoon",
+      "community": 2,
+      "norm_label": "comingsoon()"
+    },
+    {
+      "label": "App()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
+      "source_location": "L47",
+      "id": "app_app",
+      "community": 2,
+      "norm_label": "app()"
+    },
+    {
+      "label": "main.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\main.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_main_jsx",
+      "community": 13,
+      "norm_label": "main.jsx"
+    },
+    {
+      "label": "supabaseClient.js",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\supabaseClient.js",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_supabaseclient_js",
+      "community": 14,
+      "norm_label": "supabaseclient.js"
+    },
+    {
+      "label": "Navbar.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\components\\Navbar.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_components_navbar_jsx",
+      "community": 5,
+      "norm_label": "navbar.jsx"
+    },
+    {
+      "label": "Navbar()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\components\\Navbar.jsx",
+      "source_location": "L6",
+      "id": "navbar_navbar",
+      "community": 5,
+      "norm_label": "navbar()"
+    },
+    {
+      "label": "AdminDashboard.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "community": 0,
+      "norm_label": "admindashboard.jsx"
+    },
+    {
+      "label": "StatCard()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L25",
+      "id": "admindashboard_statcard",
+      "community": 0,
+      "norm_label": "statcard()"
+    },
+    {
+      "label": "Modal()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L39",
+      "id": "admindashboard_modal",
+      "community": 0,
+      "norm_label": "modal()"
+    },
+    {
+      "label": "SidebarItem()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L52",
+      "id": "admindashboard_sidebaritem",
+      "community": 0,
+      "norm_label": "sidebaritem()"
+    },
+    {
+      "label": "AdminDashboard()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L68",
+      "id": "admindashboard_admindashboard",
+      "community": 0,
+      "norm_label": "admindashboard()"
+    },
+    {
+      "label": "BookingFlow.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\BookingFlow.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_pages_bookingflow_jsx",
+      "community": 6,
+      "norm_label": "bookingflow.jsx"
+    },
+    {
+      "label": "BookingFlow()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\BookingFlow.jsx",
+      "source_location": "L19",
+      "id": "bookingflow_bookingflow",
+      "community": 6,
+      "norm_label": "bookingflow()"
+    },
+    {
+      "label": "CustomerDashboard.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "community": 1,
+      "norm_label": "customerdashboard.jsx"
+    },
+    {
+      "label": "NavItem()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L25",
+      "id": "customerdashboard_navitem",
+      "community": 1,
+      "norm_label": "navitem()"
+    },
+    {
+      "label": "StarPicker()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L41",
+      "id": "customerdashboard_starpicker",
+      "community": 1,
+      "norm_label": "starpicker()"
+    },
+    {
+      "label": "ReviewModal()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L52",
+      "id": "customerdashboard_reviewmodal",
+      "community": 1,
+      "norm_label": "reviewmodal()"
+    },
+    {
+      "label": "CustomerDashboard()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L101",
+      "id": "customerdashboard_customerdashboard",
+      "community": 1,
+      "norm_label": "customerdashboard()"
+    },
+    {
+      "label": "Home.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Home.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_pages_home_jsx",
+      "community": 7,
+      "norm_label": "home.jsx"
+    },
+    {
+      "label": "Home()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Home.jsx",
+      "source_location": "L6",
+      "id": "home_home",
+      "community": 7,
+      "norm_label": "home()"
+    },
+    {
+      "label": "Login.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Login.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_pages_login_jsx",
+      "community": 8,
+      "norm_label": "login.jsx"
+    },
+    {
+      "label": "Login()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Login.jsx",
+      "source_location": "L14",
+      "id": "login_login",
+      "community": 8,
+      "norm_label": "login()"
+    },
+    {
+      "label": "Signup.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Signup.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_pages_signup_jsx",
+      "community": 9,
+      "norm_label": "signup.jsx"
+    },
+    {
+      "label": "Signup()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Signup.jsx",
+      "source_location": "L16",
+      "id": "signup_signup",
+      "community": 9,
+      "norm_label": "signup()"
+    },
+    {
+      "label": "WhyBookDirect.jsx",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\WhyBookDirect.jsx",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_src_pages_whybookdirect_jsx",
+      "community": 10,
+      "norm_label": "whybookdirect.jsx"
+    },
+    {
+      "label": "WhyBookDirect()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\WhyBookDirect.jsx",
+      "source_location": "L5",
+      "id": "whybookdirect_whybookdirect",
+      "community": 10,
+      "norm_label": "whybookdirect()"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\seedRooms.js",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_seedrooms_js",
+      "_tgt": "seedrooms_seed",
+      "source": "d_antigravity_topavenue_seedrooms_js",
+      "target": "seedrooms_seed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\testSupabase.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_testsupabase_js",
+      "_tgt": "testsupabase_testconnection",
+      "source": "d_antigravity_topavenue_testsupabase_js",
+      "target": "testsupabase_testconnection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_app_jsx",
+      "_tgt": "app_signupguard",
+      "source": "d_antigravity_topavenue_src_app_jsx",
+      "target": "app_signupguard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_app_jsx",
+      "_tgt": "app_comingsoon",
+      "source": "d_antigravity_topavenue_src_app_jsx",
+      "target": "app_comingsoon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_app_jsx",
+      "_tgt": "app_app",
+      "source": "d_antigravity_topavenue_src_app_jsx",
+      "target": "app_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\components\\Navbar.jsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_components_navbar_jsx",
+      "_tgt": "navbar_navbar",
+      "source": "d_antigravity_topavenue_src_components_navbar_jsx",
+      "target": "navbar_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "_tgt": "admindashboard_statcard",
+      "source": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "target": "admindashboard_statcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "_tgt": "admindashboard_modal",
+      "source": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "target": "admindashboard_modal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "_tgt": "admindashboard_sidebaritem",
+      "source": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "target": "admindashboard_sidebaritem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "_tgt": "admindashboard_admindashboard",
+      "source": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
+      "target": "admindashboard_admindashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\BookingFlow.jsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_bookingflow_jsx",
+      "_tgt": "bookingflow_bookingflow",
+      "source": "d_antigravity_topavenue_src_pages_bookingflow_jsx",
+      "target": "bookingflow_bookingflow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "_tgt": "customerdashboard_navitem",
+      "source": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "target": "customerdashboard_navitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "_tgt": "customerdashboard_starpicker",
+      "source": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "target": "customerdashboard_starpicker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "_tgt": "customerdashboard_reviewmodal",
+      "source": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "target": "customerdashboard_reviewmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L101",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "_tgt": "customerdashboard_customerdashboard",
+      "source": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "target": "customerdashboard_customerdashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Home.jsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_home_jsx",
+      "_tgt": "home_home",
+      "source": "d_antigravity_topavenue_src_pages_home_jsx",
+      "target": "home_home",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Login.jsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_login_jsx",
+      "_tgt": "login_login",
+      "source": "d_antigravity_topavenue_src_pages_login_jsx",
+      "target": "login_login",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Signup.jsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_signup_jsx",
+      "_tgt": "signup_signup",
+      "source": "d_antigravity_topavenue_src_pages_signup_jsx",
+      "target": "signup_signup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\WhyBookDirect.jsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_whybookdirect_jsx",
+      "_tgt": "whybookdirect_whybookdirect",
+      "source": "d_antigravity_topavenue_src_pages_whybookdirect_jsx",
+      "target": "whybookdirect_whybookdirect",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": []
+}
