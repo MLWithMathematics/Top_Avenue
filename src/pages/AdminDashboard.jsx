@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BedDouble, CreditCard, UserCog,
   LogOut, ShieldAlert, RefreshCw, Plus, X, Save,
-  CheckCircle, Trash2, Star, MessageSquareWarning, AlertCircle
+  CheckCircle, Trash2, Star, MessageSquareWarning, AlertCircle, Eye, Pencil
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -76,6 +76,10 @@ const AdminDashboard = () => {
   const [guests, setGuests] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [complaints, setComplaints] = useState([]);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [showEditRoom, setShowEditRoom] = useState(false);
+  const [editRoomForm, setEditRoomForm] = useState({ id: null, name: '', description: '', price: '', capacity: 2, status: 'vacant' });
+  const [editRoomSaving, setEditRoomSaving] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -168,15 +172,16 @@ const AdminDashboard = () => {
         const key = b.guest_email || b.user_id;
         if (key && !seenKeys.has(key)) {
           seenKeys.add(key);
+          const guestBookings = bookingsList.filter(x => (x.guest_email || x.user_id) === key);
           uniqueGuests.push({
             id: b.user_id || b.guest_email,
             name: b.guest_name || 'Guest',
             email: b.guest_email || '—',
-            bookingCount: bookingsList.filter(x => (x.guest_email || x.user_id) === key).length,
+            bookingCount: guestBookings.length,
+            totalPeople: guestBookings.reduce((s, x) => s + (x.guests || 1), 0),
+            roomNo: guestBookings.map(x => x.room_id ? `#${x.room_id}` : '—').filter((v, i, a) => a.indexOf(v) === i).join(', '),
             lastStay: b.check_in,
-            totalSpent: bookingsList
-              .filter(x => (x.guest_email || x.user_id) === key)
-              .reduce((s, x) => s + (x.total_price || 0), 0),
+            totalSpent: guestBookings.reduce((s, x) => s + (x.total_price || 0), 0),
           });
         }
       });
@@ -249,6 +254,25 @@ const AdminDashboard = () => {
   const deleteRoom = async (id) => {
     if (!window.confirm('Delete this room?')) return;
     await supabase.from('rooms').delete().eq('id', id);
+    fetchDashboardData();
+  };
+
+  const openEditRoom = (room) => {
+    setEditRoomForm({ id: room.id, name: room.name, description: room.description || '', price: room.price, capacity: room.capacity, status: room.status });
+    setShowEditRoom(true);
+  };
+
+  const updateRoom = async () => {
+    if (!editRoomForm.name || !editRoomForm.price) return;
+    setEditRoomSaving(true);
+    const { error } = await supabase.from('rooms').update({
+      name: editRoomForm.name, description: editRoomForm.description,
+      price: parseFloat(editRoomForm.price), capacity: parseInt(editRoomForm.capacity),
+      status: editRoomForm.status,
+    }).eq('id', editRoomForm.id);
+    setEditRoomSaving(false);
+    if (error) { alert('Error: ' + error.message); return; }
+    setShowEditRoom(false);
     fetchDashboardData();
   };
 
@@ -493,7 +517,7 @@ const AdminDashboard = () => {
                           <td style={{ color: 'var(--text-muted)' }}>{r.capacity} guests</td>
                           <td>{statusBadge(r.status)}</td>
                           <td>
-                            <button onClick={() => deleteRoom(r.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '0.3rem' }}><Trash2 size={16} /></button>
+                            <button onClick={() => openEditRoom(r)} style={{ background: 'none', border: '1px solid var(--accent-color)', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.65rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}><Pencil size={13} /> Modify</button>
                           </td>
                         </tr>
                       ))}
@@ -521,13 +545,14 @@ const AdminDashboard = () => {
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table className="data-table">
-                    <thead><tr><th>Name</th><th>Email</th><th>Bookings</th><th>Total Spent</th><th>Last Stay</th></tr></thead>
+                    <thead><tr><th>Name</th><th>Email</th><th>Room No.</th><th>People</th><th>Total Spent</th><th>Last Stay</th></tr></thead>
                     <tbody>
                       {guests.map(g => (
                         <tr key={g.id}>
                           <td style={{ fontWeight: 600 }}>{g.name}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{g.email}</td>
-                          <td><span className="badge badge-info">{g.bookingCount} booking{g.bookingCount !== 1 ? 's' : ''}</span></td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{g.roomNo || '—'}</td>
+                          <td><span className="badge badge-info">{g.totalPeople} guest{g.totalPeople !== 1 ? 's' : ''}</span></td>
                           <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${g.totalSpent.toLocaleString()}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{g.lastStay}</td>
                         </tr>
@@ -635,7 +660,12 @@ const AdminDashboard = () => {
                           <td style={{ fontWeight: 600 }}>{c.guest_name || '—'}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{c.guest_email || '—'}</td>
                           <td style={{ fontWeight: 600, fontSize: '0.88rem' }}>{c.subject}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.description}</td>
+                          <td style={{ maxWidth: '220px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px', display: 'block' }}>{c.description}</span>
+                              <button onClick={() => setSelectedComplaint(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-dark)', flexShrink: 0, padding: '0.2rem' }} title="View full complaint"><Eye size={14} /></button>
+                            </div>
+                          </td>
                           <td>{statusBadge(c.status)}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{new Date(c.created_at).toLocaleDateString()}</td>
                           <td>
@@ -737,6 +767,64 @@ const AdminDashboard = () => {
               <button className="btn btn-ghost" onClick={() => setShowAddStaff(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={saveStaff} disabled={staffSaving} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Save size={15} />{staffSaving ? 'Saving…' : 'Add Staff'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ══ COMPLAINT DETAIL MODAL ══ */}
+      {selectedComplaint && (
+        <Modal title="Complaint Details" onClose={() => setSelectedComplaint(null)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div><label style={lbl}>Guest</label><p style={{ color: 'var(--text-main)', fontWeight: 600, margin: 0 }}>{selectedComplaint.guest_name || '—'}</p></div>
+              <div><label style={lbl}>Email</label><p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.88rem' }}>{selectedComplaint.guest_email || '—'}</p></div>
+              <div><label style={lbl}>Subject</label><p style={{ color: 'var(--text-main)', fontWeight: 600, margin: 0 }}>{selectedComplaint.subject || '—'}</p></div>
+              <div><label style={lbl}>Date</label><p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.88rem' }}>{new Date(selectedComplaint.created_at).toLocaleDateString()}</p></div>
+            </div>
+            <div>
+              <label style={lbl}>Status</label>
+              <div style={{ marginBottom: '0.25rem' }}>{statusBadge(selectedComplaint.status)}</div>
+            </div>
+            <div>
+              <label style={lbl}>Full Description</label>
+              <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '1rem', color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: 1.6, minHeight: '80px', whiteSpace: 'pre-wrap' }}>{selectedComplaint.description || 'No description provided.'}</div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
+              <label style={{ ...lbl, marginBottom: 0 }}>Update Status:</label>
+              <select value={selectedComplaint.status} onChange={async e => { const newStatus = e.target.value; await updateComplaintStatus(selectedComplaint.id, newStatus); setSelectedComplaint({ ...selectedComplaint, status: newStatus }); }} style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontFamily: 'var(--font-body)' }}>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+              </select>
+              <button className="btn btn-ghost" onClick={() => setSelectedComplaint(null)}>Close</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ══ EDIT ROOM MODAL ══ */}
+      {showEditRoom && (
+        <Modal title="Modify Room" onClose={() => setShowEditRoom(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div><label style={lbl}>Room Name *</label><input style={fi} value={editRoomForm.name} onChange={e => setEditRoomForm({...editRoomForm, name: e.target.value})} placeholder="e.g. Deluxe King Suite" /></div>
+            <div><label style={lbl}>Description</label><textarea style={{...fi, resize: 'vertical', minHeight: '80px'}} value={editRoomForm.description} onChange={e => setEditRoomForm({...editRoomForm, description: e.target.value})} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div><label style={lbl}>Price per Night ($) *</label><input style={fi} type="number" min="0" value={editRoomForm.price} onChange={e => setEditRoomForm({...editRoomForm, price: e.target.value})} /></div>
+              <div><label style={lbl}>Capacity (Guests)</label><input style={fi} type="number" min="1" max="10" value={editRoomForm.capacity} onChange={e => setEditRoomForm({...editRoomForm, capacity: e.target.value})} /></div>
+            </div>
+            <div><label style={lbl}>Status</label>
+              <select style={fi} value={editRoomForm.status} onChange={e => setEditRoomForm({...editRoomForm, status: e.target.value})}>
+                <option value="vacant">Vacant</option>
+                <option value="occupied">Occupied</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <button className="btn btn-ghost" onClick={() => setShowEditRoom(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={updateRoom} disabled={editRoomSaving} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Save size={15} />{editRoomSaving ? 'Saving…' : 'Save Changes'}
               </button>
             </div>
           </div>

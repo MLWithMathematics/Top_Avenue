@@ -167,7 +167,12 @@ const BookingFlow = () => {
                 <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>No rooms available for the selected dates.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '2rem' }}>
-                  {rooms.map(room => (
+                  {rooms.filter(room => room.capacity >= bookingDetails.guests).length === 0 ? (
+                    <div style={{ padding: '1.25rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', color: '#dc2626', textAlign: 'center', fontSize: '0.9rem' }}>
+                      No rooms can accommodate <strong>{bookingDetails.guests} guest{bookingDetails.guests > 1 ? 's' : ''}</strong>. Please go back and reduce the number of guests.
+                    </div>
+                  ) : null}
+                  {rooms.filter(room => room.capacity >= bookingDetails.guests).map(room => (
                     <div key={room.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '1.5px solid var(--glass-border)', borderRadius: '10px', transition: 'border-color 0.2s' }}
                       onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-color)'}
                       onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
