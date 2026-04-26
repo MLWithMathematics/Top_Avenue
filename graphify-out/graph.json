@@ -124,7 +124,7 @@
       "label": "Navbar()",
       "file_type": "code",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\components\\Navbar.jsx",
-      "source_location": "L6",
+      "source_location": "L7",
       "id": "navbar_navbar",
       "community": 5,
       "norm_label": "navbar()"
@@ -375,7 +375,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\components\\Navbar.jsx",
-      "source_location": "L6",
+      "source_location": "L7",
       "weight": 1.0,
       "_src": "d_antigravity_topavenue_src_components_navbar_jsx",
       "_tgt": "navbar_navbar",

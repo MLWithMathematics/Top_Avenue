@@ -76,7 +76,7 @@ const BookingFlow = () => {
     const { error } = await supabase.from('bookings').insert([{
       user_id: session.user.id,
       room_id: bookingDetails.roomId,
-      room_name: bookingDetails.roomName,
+      // room_name stored via room_id join — column removed from schema
       check_in: bookingDetails.checkIn,
       check_out: bookingDetails.checkOut,
       guests: bookingDetails.guests,

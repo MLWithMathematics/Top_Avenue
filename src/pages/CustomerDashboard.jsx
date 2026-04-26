@@ -25,15 +25,15 @@ const lbl = {
 const NavItem = ({ icon: Icon, label, id, active, onClick }) => (
   <button onClick={() => onClick(id)} style={{
     display: 'flex', alignItems: 'center', gap: '0.85rem',
-    width: '100%', padding: '0.85rem 1.25rem',
-    background: active ? 'rgba(201,168,76,0.15)' : 'transparent',
-    border: 'none', borderLeft: `3px solid ${active ? 'var(--accent-color)' : 'transparent'}`,
-    color: active ? '#fff' : 'var(--sidebar-text)',
-    cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
-    borderRadius: '0 6px 6px 0',
+    width: '100%', padding: '0.72rem 1.1rem',
+    background: active ? 'rgba(201,168,76,0.1)' : 'transparent',
+    border: 'none',
+    color: active ? 'var(--accent-dark)' : 'var(--text-muted)',
+    cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s',
+    borderRadius: '8px',
   }}>
     <Icon size={18} />
-    <span style={{ fontSize: '0.9rem', fontFamily: 'var(--font-body)', fontWeight: active ? 600 : 400 }}>{label}</span>
+    <span style={{ fontSize: '0.88rem', fontFamily: 'var(--font-body)', fontWeight: active ? 700 : 400 }}>{label}</span>
   </button>
 );
 
@@ -105,10 +105,9 @@ const CustomerDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
-  const [reviewTarget, setReviewTarget] = useState(null); // booking to review
+  const [reviewTarget, setReviewTarget] = useState(null);
   const [toast, setToast] = useState('');
 
-  // Profile state — extended fields
   const [profile, setProfile] = useState({
     full_name: '', email: '', phone: '', nationality: '',
     address: '', city: '', state: '', country: '',
@@ -151,7 +150,6 @@ const CustomerDashboard = () => {
         .eq('user_id', user.id);
       setReviews(rv || []);
 
-      // Load profile extras from localStorage (no profiles table required)
       const stored = JSON.parse(localStorage.getItem(`ta_profile_${user.id}`) || '{}');
       setProfile(prev => ({ ...prev, ...stored, email: user.email, full_name: stored.full_name || user.user_metadata?.full_name || '' }));
     } catch (e) { console.error(e); }
@@ -163,9 +161,7 @@ const CustomerDashboard = () => {
   // ── Save profile ──────────────────────────────────────────────
   const saveProfile = async () => {
     setProfileSaving(true);
-    // Persist to localStorage (works without a profiles table)
     localStorage.setItem(`ta_profile_${user.id}`, JSON.stringify(profile));
-    // Optionally update full_name in Supabase auth metadata
     await supabase.auth.updateUser({ data: { full_name: profile.full_name } });
     setProfileSaving(false);
     setProfileEditing(false);
@@ -198,7 +194,6 @@ const CustomerDashboard = () => {
     navigate('/login');
   };
 
-  // ── Helpers ───────────────────────────────────────────────────
   const hasReviewed = (bookingId) => reviews.some(r => r.booking_id === bookingId);
 
   const statusBadge = (status) => {
@@ -231,15 +226,14 @@ const CustomerDashboard = () => {
       )}
 
       {/* ── Sidebar ──────────────────────────────────────────── */}
-      <aside style={{ width: '240px', background: 'var(--sidebar-bg)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))' }}>
-        {/* Avatar */}
-        <div style={{ padding: '1.5rem 1rem', borderBottom: '1px solid var(--sidebar-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <aside style={{ width: '240px', background: '#ffffff', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))' }}>
+        <div style={{ padding: '1.5rem 1rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-color), var(--accent-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#1a1a2e', fontSize: '1.1rem', flexShrink: 0 }}>
             {(profile.full_name || user?.email || 'G')[0].toUpperCase()}
           </div>
           <div style={{ overflow: 'hidden' }}>
-            <p style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.full_name || 'Guest'}</p>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</p>
+            <p style={{ color: 'var(--text-main)', fontWeight: 600, fontSize: '0.9rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile.full_name || 'Guest'}</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</p>
           </div>
         </div>
 
@@ -250,7 +244,7 @@ const CustomerDashboard = () => {
           <NavItem icon={User}            label="Profile"     id="profile"   active={activeTab==='profile'}   onClick={setActiveTab} />
         </nav>
 
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
+        <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)' }}>
           <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'transparent', border: '1px solid rgba(220,38,38,0.4)', color: '#f87171', cursor: 'pointer', padding: '0.6rem 1rem', borderRadius: '6px', width: '100%', fontSize: '0.85rem', fontFamily: 'var(--font-body)' }}>
             <LogOut size={16} /> Sign Out
           </button>
@@ -268,7 +262,6 @@ const CustomerDashboard = () => {
             </h1>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Here's a summary of your TopAvenue stays.</p>
 
-            {/* Stats row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
               {[
                 { label: 'Total Bookings', value: bookings.length, accent: '#2563eb' },
@@ -283,7 +276,6 @@ const CustomerDashboard = () => {
               ))}
             </div>
 
-            {/* Upcoming bookings */}
             <div style={{ ...cardStyle, overflow: 'hidden' }}>
               <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--glass-border)' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Recent Bookings</h3>
@@ -427,7 +419,6 @@ const CustomerDashboard = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-              {/* Personal Information */}
               <div style={{ ...cardStyle, padding: '1.75rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <User size={18} color="var(--accent-color)" /> Personal Information
@@ -461,7 +452,6 @@ const CustomerDashboard = () => {
                 </div>
               </div>
 
-              {/* Address */}
               <div style={{ ...cardStyle, padding: '1.75rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <MapPin size={18} color="var(--accent-color)" /> Address
@@ -484,7 +474,6 @@ const CustomerDashboard = () => {
                 </div>
               </div>
 
-              {/* ID Information */}
               <div style={{ ...cardStyle, padding: '1.75rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckCircle size={18} color="var(--accent-color)" /> ID & Verification
@@ -494,7 +483,7 @@ const CustomerDashboard = () => {
                     <label style={lbl}>ID Type</label>
                     {profileEditing ? (
                       <select style={fi} value={profile.id_type} onChange={e => setProfile({...profile, id_type: e.target.value})}>
-                        {['', 'Passport', 'Aadhaar Card', 'PAN Card', 'Driver\'s License', 'Voter ID'].map(o => <option key={o} value={o}>{o || 'Select…'}</option>)}
+                        {['', 'Passport', 'Aadhaar Card', 'PAN Card', "Driver's License", 'Voter ID'].map(o => <option key={o} value={o}>{o || 'Select…'}</option>)}
                       </select>
                     ) : (
                       <p style={{ margin: 0, color: profile.id_type ? 'var(--text-main)' : 'var(--text-light)', fontSize: '0.9rem', padding: '0.75rem 0' }}>{profile.id_type || '—'}</p>
@@ -510,7 +499,6 @@ const CustomerDashboard = () => {
                 </div>
               </div>
 
-              {/* Emergency Contact */}
               <div style={{ ...cardStyle, padding: '1.75rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Phone size={18} color="var(--accent-color)" /> Emergency Contact
@@ -531,7 +519,6 @@ const CustomerDashboard = () => {
                 </div>
               </div>
 
-              {/* Preferences */}
               <div style={{ ...cardStyle, padding: '1.75rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Star size={18} color="var(--accent-color)" /> Stay Preferences
@@ -552,12 +539,11 @@ const CustomerDashboard = () => {
                 </div>
               </div>
 
-            </div>{/* end profile cards */}
+            </div>
           </div>
         )}
       </main>
 
-      {/* ══ REVIEW MODAL ══ */}
       {reviewTarget && (
         <ReviewModal
           booking={reviewTarget}

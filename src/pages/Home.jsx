@@ -38,52 +38,52 @@ const Home = () => {
             <Link to="/why-book-direct" className="btn" style={{ padding: '0.9rem 2.5rem', background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', fontSize: '0.9rem', borderRadius: 'var(--radius-sm)' }}>Why Book Direct</Link>
           </div>
         </div>
+      </section>
 
-        {/* Quick Booking Bar */}
-        <div className="booking-bar-wrapper container animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="booking-bar">
-            <div className="booking-inputs">
-              <div className="input-group">
-                <label>Check In</label>
-                <div className="input-field">
-                  <Calendar size={16} />
-                  <input type="date" />
-                </div>
+      {/* Quick Booking Bar — sits below the hero, pulled up to overlap */}
+      <div className="booking-bar-wrapper container animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        <div className="booking-bar">
+          <div className="booking-inputs">
+            <div className="input-group">
+              <label>Check In</label>
+              <div className="input-field">
+                <Calendar size={16} />
+                <input type="date" />
               </div>
-              <div className="input-group">
-                <label>Check Out</label>
-                <div className="input-field">
-                  <Calendar size={16} />
-                  <input type="date" />
-                </div>
-              </div>
-              <div className="input-group">
-                <label>Guests</label>
-                <div className="input-field">
-                  <Users size={16} />
-                  <select>
-                    <option>1 Guest</option>
-                    <option>2 Guests</option>
-                    <option>3 Guests</option>
-                    <option>4+ Guests</option>
-                  </select>
-                </div>
-              </div>
-              <Link to="/book" className="btn btn-primary booking-btn">Check Availability</Link>
             </div>
-            <div className="booking-auth">
-              <span>Members get exclusive rates &amp; perks</span>
-              <div className="auth-buttons">
-                <Link to="/login" className="btn btn-outline btn-sm">Login</Link>
-                <Link to="/signup" className="btn btn-primary btn-sm">Sign Up Free</Link>
+            <div className="input-group">
+              <label>Check Out</label>
+              <div className="input-field">
+                <Calendar size={16} />
+                <input type="date" />
               </div>
+            </div>
+            <div className="input-group">
+              <label>Guests</label>
+              <div className="input-field">
+                <Users size={16} />
+                <select>
+                  <option>1 Guest</option>
+                  <option>2 Guests</option>
+                  <option>3 Guests</option>
+                  <option>4+ Guests</option>
+                </select>
+              </div>
+            </div>
+            <Link to="/book" className="btn btn-primary booking-btn">Check Availability</Link>
+          </div>
+          <div className="booking-auth">
+            <span>Members get exclusive rates &amp; perks</span>
+            <div className="auth-buttons">
+              <Link to="/login" className="btn btn-outline btn-sm">Login</Link>
+              <Link to="/signup" className="btn btn-primary btn-sm">Sign Up Free</Link>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* ===== FEATURED ROOMS ===== */}
-      <section className="featured-rooms section-padding" style={{ paddingTop: '10rem' }}>
+      <section className="featured-rooms section-padding" style={{ paddingTop: '5rem' }}>
         <div className="container">
           <p style={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', color: 'var(--accent-color)', marginBottom: '0.75rem' }}>Accommodations</p>
           <h2 className="section-title">Signature <span>Suites</span></h2>

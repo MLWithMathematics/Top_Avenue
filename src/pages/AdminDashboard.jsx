@@ -52,15 +52,15 @@ const Modal = ({ title, onClose, children }) => (
 const SidebarItem = ({ icon: Icon, label, id, active, onClick }) => (
   <button onClick={() => onClick(id)} style={{
     display: 'flex', alignItems: 'center', gap: '0.85rem',
-    width: '100%', padding: '0.85rem 1.25rem',
-    background: active ? 'rgba(201,168,76,0.15)' : 'transparent',
-    border: 'none', borderLeft: `3px solid ${active ? 'var(--accent-color)' : 'transparent'}`,
-    color: active ? '#fff' : 'var(--sidebar-text)',
-    cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
-    borderRadius: '0 6px 6px 0',
+    width: '100%', padding: '0.72rem 1.1rem',
+    background: active ? 'rgba(201,168,76,0.1)' : 'transparent',
+    border: 'none',
+    color: active ? 'var(--accent-dark)' : 'var(--text-muted)',
+    cursor: 'pointer', textAlign: 'left', transition: 'all 0.18s',
+    borderRadius: '8px',
   }}>
     <Icon size={18} />
-    <span style={{ fontSize: '0.9rem', fontFamily: 'var(--font-body)', fontWeight: active ? 600 : 400 }}>{label}</span>
+    <span style={{ fontSize: '0.88rem', fontFamily: 'var(--font-body)', fontWeight: active ? 700 : 400 }}>{label}</span>
   </button>
 );
 
@@ -242,10 +242,10 @@ const AdminDashboard = () => {
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-subtle)', paddingTop: 'var(--nav-height)' }}>
 
       {/* ── Sidebar ─────────────────────────────────────────── */}
-      <aside style={{ width: '240px', background: 'var(--sidebar-bg)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))' }}>
-        <div style={{ padding: '1.5rem 1rem 1rem', borderBottom: '1px solid var(--sidebar-border)' }}>
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', color: '#fff', margin: 0 }}>TOP<span style={{ color: 'var(--accent-color)' }}>AVENUE</span></p>
-          <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', margin: '0.2rem 0 0', textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Console</p>
+      <aside style={{ width: '240px', background: '#ffffff', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))' }}>
+        <div style={{ padding: '1.5rem 1rem 1rem', borderBottom: '1px solid var(--glass-border)' }}>
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', color: 'var(--text-main)', margin: 0 }}>TOP<span style={{ color: 'var(--accent-color)' }}>AVENUE</span></p>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.2rem 0 0', textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Console</p>
         </div>
         <nav style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
           <SidebarItem icon={LayoutDashboard} label="Overview"  id="overview" active={activeTab==='overview'} onClick={setActiveTab} />
@@ -254,8 +254,8 @@ const AdminDashboard = () => {
           <SidebarItem icon={CreditCard}      label="Payments"  id="payments" active={activeTab==='payments'} onClick={setActiveTab} />
           <SidebarItem icon={UserCog}         label="Staff"     id="staff"    active={activeTab==='staff'}    onClick={setActiveTab} />
         </nav>
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
-          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.75rem', wordBreak: 'break-all' }}>{adminUser?.email}</p>
+        <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)' }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', wordBreak: 'break-all' }}>{adminUser?.email}</p>
           <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'transparent', border: '1px solid rgba(220,38,38,0.4)', color: '#f87171', cursor: 'pointer', padding: '0.6rem 1rem', borderRadius: '6px', width: '100%', fontSize: '0.85rem', fontFamily: 'var(--font-body)' }}>
             <LogOut size={16} /> Sign Out
           </button>

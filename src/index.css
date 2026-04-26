@@ -334,3 +334,43 @@ input, select, textarea {
 .data-table tr:last-child td { border-bottom: none; }
 
 .data-table tr:hover td { background: var(--bg-subtle); }
+
+/* ── Font-colour safety: ensure text never vanishes on section backgrounds ── */
+.why-section h2,
+.why-section p,
+.why-section h3 {
+  color: var(--text-main);
+}
+
+.featured-rooms h2,
+.featured-rooms p,
+.featured-rooms h3 {
+  color: var(--text-main);
+}
+
+.reviews h2 {
+  color: var(--text-main);
+}
+
+/* CTA section: explicit white text on dark gradient */
+.cta-section,
+.cta-section h2,
+.cta-section p {
+  color: #ffffff;
+}
+.cta-section .section-title span {
+  color: var(--accent-color);
+}
+
+/* Booking bar auth text always visible on white card */
+.booking-auth span {
+  color: var(--text-muted);
+}
+
+/* Dashboard main content text always uses theme colours */
+.dashboard-main h1,
+.dashboard-main h2,
+.dashboard-main h3,
+.dashboard-main p {
+  color: var(--text-main);
+}

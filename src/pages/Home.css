@@ -11,7 +11,7 @@
   flex-direction: column;
   justify-content: center;
   background: linear-gradient(145deg, #1a1a2e 0%, #2d2d5e 40%, #1a2744 100%);
-  overflow: hidden;
+  /* overflow removed so booking bar can overlap naturally from outside */
 }
 
 /* Decorative grain / texture overlay */
@@ -74,14 +74,12 @@
   margin: 0 auto 2rem;
 }
 
-/* Booking bar */
+/* Booking bar — lives outside the hero, pulled up to overlap the hero bottom */
 .booking-bar-wrapper {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 4;
-  transform: translateY(50%);
+  position: relative;
+  z-index: 10;
+  margin-top: -80px;
+  padding: 0 2rem;
 }
 
 .booking-bar {
@@ -416,9 +414,8 @@
   }
 
   .booking-bar-wrapper {
-    position: relative;
-    transform: none;
-    margin-top: 2rem;
+    margin-top: -40px;
+    padding: 0 1rem;
   }
 
   .hero-content h1 {
