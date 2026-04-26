@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BedDouble, Star, User, LogOut,
   Calendar, Clock, Phone, Mail, MapPin, Globe,
-  Edit2, Save, X, CheckCircle, MessageSquareWarning, Send
+  Edit2, Save, X, CheckCircle, MessageSquareWarning, Send, Eye
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -48,7 +48,7 @@ const StarPicker = ({ value, onChange }) => (
   </div>
 );
 
-// ── Review Modal ─────────────────────────────────────────────────
+// ── Review Modal (submit new) ────────────────────────────────────
 const ReviewModal = ({ booking, onClose, onSubmit }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -187,6 +187,13 @@ const CustomerDashboard = () => {
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [toast, setToast] = useState('');
 
+  // ── View / Edit states ─────────────────────────────────────────
+  const [selectedReview, setSelectedReview] = useState(null);
+  const [editingReview, setEditingReview] = useState(null);   // { ...review, rating, comment }
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [editingComplaint, setEditingComplaint] = useState(null); // { ...complaint, subject, description }
+  const [modalSaving, setModalSaving] = useState(false);
+
   const [profile, setProfile] = useState({
     full_name: '', email: '', phone: '', nationality: '',
     address: '', city: '', state: '', country: '',
@@ -262,7 +269,6 @@ const CustomerDashboard = () => {
   };
 
   // ── Submit review ──────────────────────────────────────────────
-  // Helper: returns value only if it looks like a UUID, otherwise null
   const toUuidOrNull = (val) => {
     if (!val) return null;
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -284,6 +290,20 @@ const CustomerDashboard = () => {
     fetchData();
   };
 
+  // ── Update review ──────────────────────────────────────────────
+  const updateReview = async () => {
+    if (!editingReview?.comment?.trim()) return;
+    setModalSaving(true);
+    const { error } = await supabase.from('reviews')
+      .update({ rating: editingReview.rating, comment: editingReview.comment })
+      .eq('id', editingReview.id);
+    setModalSaving(false);
+    if (error) { alert('Could not update review: ' + error.message); return; }
+    showToast('Review updated!');
+    setEditingReview(null);
+    fetchData();
+  };
+
   // ── Submit complaint ───────────────────────────────────────────
   const submitComplaint = async ({ bookingId, roomId, subject, description }) => {
     const { error } = await supabase.from('complaints').insert([{
@@ -298,6 +318,20 @@ const CustomerDashboard = () => {
     }]);
     if (error) { alert('Could not submit complaint: ' + error.message); return; }
     showToast('Complaint registered. We will look into it shortly!');
+    fetchData();
+  };
+
+  // ── Update complaint ───────────────────────────────────────────
+  const updateComplaint = async () => {
+    if (!editingComplaint?.subject?.trim() || !editingComplaint?.description?.trim()) return;
+    setModalSaving(true);
+    const { error } = await supabase.from('complaints')
+      .update({ subject: editingComplaint.subject, description: editingComplaint.description })
+      .eq('id', editingComplaint.id);
+    setModalSaving(false);
+    if (error) { alert('Could not update complaint: ' + error.message); return; }
+    showToast('Complaint updated!');
+    setEditingComplaint(null);
     fetchData();
   };
 
@@ -509,7 +543,22 @@ const CustomerDashboard = () => {
                         {[1,2,3,4,5].map(n => <Star key={n} size={16} fill={n <= r.rating ? 'var(--accent-color)' : 'none'} color={n <= r.rating ? 'var(--accent-color)' : '#d1d5db'} />)}
                       </div>
                     </div>
-                    <p style={{ color: 'var(--text-main)', fontStyle: 'italic', lineHeight: 1.7, margin: 0 }}>"{r.comment}"</p>
+                    <p style={{ color: 'var(--text-main)', fontStyle: 'italic', lineHeight: 1.7, margin: '0 0 1rem' }}>"{r.comment}"</p>
+                    <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => setSelectedReview(r)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.6rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem' }}
+                        title="View full review"
+                      >
+                        <Eye size={14} /> View
+                      </button>
+                      <button
+                        onClick={() => setEditingReview({ ...r })}
+                        style={{ background: 'none', border: '1px solid var(--accent-color)', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.7rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}
+                      >
+                        <Edit2 size={13} /> Edit
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -551,7 +600,24 @@ const CustomerDashboard = () => {
                       </div>
                       {statusBadge(c.status)}
                     </div>
-                    <p style={{ color: 'var(--text-main)', lineHeight: 1.7, margin: 0, fontSize: '0.9rem' }}>{c.description}</p>
+                    <p style={{ color: 'var(--text-main)', lineHeight: 1.7, margin: '0 0 1rem', fontSize: '0.9rem' }}>{c.description}</p>
+                    <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => setSelectedComplaint(c)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.6rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem' }}
+                        title="View full complaint"
+                      >
+                        <Eye size={14} /> View
+                      </button>
+                      {c.status === 'open' && (
+                        <button
+                          onClick={() => setEditingComplaint({ ...c })}
+                          style={{ background: 'none', border: '1px solid var(--accent-color)', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.7rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}
+                        >
+                          <Edit2 size={13} /> Edit
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -707,6 +773,7 @@ const CustomerDashboard = () => {
         )}
       </main>
 
+      {/* ── Submit Review Modal ───────────────────────────────── */}
       {reviewTarget && (
         <ReviewModal
           booking={reviewTarget}
@@ -715,6 +782,7 @@ const CustomerDashboard = () => {
         />
       )}
 
+      {/* ── Submit Complaint Modal ────────────────────────────── */}
       {showComplaintModal && (
         <ComplaintModal
           bookings={bookings}
@@ -722,6 +790,147 @@ const CustomerDashboard = () => {
           onSubmit={submitComplaint}
         />
       )}
+
+      {/* ── VIEW Review Modal ─────────────────────────────────── */}
+      {selectedReview && (
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setSelectedReview(null); }}>
+          <div className="modal-box">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', color: 'var(--text-main)' }}>Review Details</h3>
+              <button onClick={() => setSelectedReview(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div><label style={lbl}>Room</label><p style={{ margin: 0, fontWeight: 600 }}>{selectedReview.room_name || `Room #${selectedReview.room_id}` || '—'}</p></div>
+                <div><label style={lbl}>Date</label><p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem' }}>{new Date(selectedReview.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p></div>
+              </div>
+              <div>
+                <label style={lbl}>Rating</label>
+                <div style={{ display: 'flex', gap: '0.2rem', marginTop: '0.25rem' }}>
+                  {[1,2,3,4,5].map(n => <Star key={n} size={20} fill={n <= selectedReview.rating ? 'var(--accent-color)' : 'none'} color={n <= selectedReview.rating ? 'var(--accent-color)' : '#d1d5db'} />)}
+                  <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)', fontSize: '0.88rem', alignSelf: 'center' }}>{selectedReview.rating}/5</span>
+                </div>
+              </div>
+              <div>
+                <label style={lbl}>Full Review</label>
+                <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '1rem', color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: 1.7, fontStyle: 'italic', minHeight: '80px', whiteSpace: 'pre-wrap' }}>"{selectedReview.comment}"</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button className="btn btn-ghost" onClick={() => { setSelectedReview(null); setEditingReview({ ...selectedReview }); }}>
+                  <Edit2 size={14} style={{ marginRight: 4 }} />Edit This Review
+                </button>
+                <button className="btn btn-primary" onClick={() => setSelectedReview(null)}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EDIT Review Modal ─────────────────────────────────── */}
+      {editingReview && (
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setEditingReview(null); }}>
+          <div className="modal-box">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', color: 'var(--text-main)' }}>Edit Review</h3>
+              <button onClick={() => setEditingReview(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={lbl}>Rating</label>
+                <StarPicker value={editingReview.rating} onChange={v => setEditingReview({ ...editingReview, rating: v })} />
+              </div>
+              <div>
+                <label style={lbl}>Your Review *</label>
+                <textarea
+                  style={{ ...fi, resize: 'vertical', minHeight: '110px' }}
+                  value={editingReview.comment}
+                  onChange={e => setEditingReview({ ...editingReview, comment: e.target.value })}
+                  placeholder="Update your review…"
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button className="btn btn-ghost" onClick={() => setEditingReview(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={updateReview} disabled={modalSaving || !editingReview.comment?.trim()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Save size={15} />{modalSaving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── VIEW Complaint Modal ──────────────────────────────── */}
+      {selectedComplaint && (
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setSelectedComplaint(null); }}>
+          <div className="modal-box">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', color: 'var(--text-main)' }}>Complaint Details</h3>
+              <button onClick={() => setSelectedComplaint(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div><label style={lbl}>Subject</label><p style={{ margin: 0, fontWeight: 600 }}>{selectedComplaint.subject}</p></div>
+                <div><label style={lbl}>Status</label><div style={{ marginTop: '0.2rem' }}>{statusBadge(selectedComplaint.status)}</div></div>
+                <div><label style={lbl}>Date</label><p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.88rem' }}>{new Date(selectedComplaint.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p></div>
+              </div>
+              <div>
+                <label style={lbl}>Full Description</label>
+                <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '1rem', color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: 1.7, minHeight: '80px', whiteSpace: 'pre-wrap' }}>{selectedComplaint.description || 'No description.'}</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                {selectedComplaint.status === 'open' && (
+                  <button className="btn btn-ghost" onClick={() => { setSelectedComplaint(null); setEditingComplaint({ ...selectedComplaint }); }}>
+                    <Edit2 size={14} style={{ marginRight: 4 }} />Edit
+                  </button>
+                )}
+                <button className="btn btn-primary" onClick={() => setSelectedComplaint(null)}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EDIT Complaint Modal ──────────────────────────────── */}
+      {editingComplaint && (
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setEditingComplaint(null); }}>
+          <div className="modal-box">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', color: 'var(--text-main)' }}>Edit Complaint</h3>
+              <button onClick={() => setEditingComplaint(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '1.25rem', background: '#fef9ec', border: '1px solid #fde68a', borderRadius: '6px', padding: '0.6rem 0.85rem' }}>
+              ⚠ Complaints can only be edited while status is <strong>Open</strong>.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={lbl}>Subject *</label>
+                <input
+                  style={fi}
+                  value={editingComplaint.subject}
+                  onChange={e => setEditingComplaint({ ...editingComplaint, subject: e.target.value })}
+                  placeholder="Complaint subject…"
+                />
+              </div>
+              <div>
+                <label style={lbl}>Description *</label>
+                <textarea
+                  style={{ ...fi, resize: 'vertical', minHeight: '110px' }}
+                  value={editingComplaint.description}
+                  onChange={e => setEditingComplaint({ ...editingComplaint, description: e.target.value })}
+                  placeholder="Describe the issue…"
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button className="btn btn-ghost" onClick={() => setEditingComplaint(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={updateComplaint} disabled={modalSaving || !editingComplaint.subject?.trim() || !editingComplaint.description?.trim()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Save size={15} />{modalSaving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
