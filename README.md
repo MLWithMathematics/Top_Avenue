@@ -14,7 +14,7 @@
 ---
 
 # 🏨 Top Avenue | Full-Stack Hotel Booking System
-**[Live Demo](https://topavenue.vercel.app)** | 
+**[Live Demo]👉 **[Click here to view the live deployment on Vercel](https://topavenue.vercel.app)** | 
 
 ---
 ## 📸 Screenshots
