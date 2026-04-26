@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BedDouble, Star, User, LogOut,
   Calendar, Clock, Phone, Mail, MapPin, Globe,
-  Edit2, Save, X, CheckCircle
+  Edit2, Save, X, CheckCircle, MessageSquareWarning, Send
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -97,6 +97,83 @@ const ReviewModal = ({ booking, onClose, onSubmit }) => {
   );
 };
 
+// ── Complaint Modal ──────────────────────────────────────────────
+const ComplaintModal = ({ bookings, onClose, onSubmit }) => {
+  const [selectedBookingId, setSelectedBookingId] = useState('');
+  const [subject, setSubject] = useState('');
+  const [description, setDescription] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!subject.trim() || !description.trim()) return;
+    setSubmitting(true);
+    const booking = bookings.find(b => b.id === selectedBookingId);
+    await onSubmit({
+      bookingId: selectedBookingId,
+      roomId: booking?.room_id || null,
+      subject,
+      description,
+    });
+    setSubmitting(false);
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal-box">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', color: 'var(--text-main)' }}>Register a Complaint</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+        </div>
+
+        <div style={{ marginBottom: '1.1rem' }}>
+          <label style={lbl}>Related Booking (optional)</label>
+          <select style={fi} value={selectedBookingId} onChange={e => setSelectedBookingId(e.target.value)}>
+            <option value="">— Select a booking —</option>
+            {bookings.map(b => (
+              <option key={b.id} value={b.id}>
+                {b.room_name || `Room #${b.room_id}`} · {b.check_in} → {b.check_out}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ marginBottom: '1.1rem' }}>
+          <label style={lbl}>Subject *</label>
+          <input
+            style={fi}
+            placeholder="e.g. Noisy AC, dirty linen, billing issue…"
+            value={subject}
+            onChange={e => setSubject(e.target.value)}
+          />
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={lbl}>Description *</label>
+          <textarea
+            style={{ ...fi, resize: 'vertical', minHeight: '110px' }}
+            placeholder="Please describe the issue in detail…"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-primary"
+            onClick={handleSubmit}
+            disabled={submitting || !subject.trim() || !description.trim()}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Send size={15} />{submitting ? 'Submitting…' : 'Submit Complaint'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ════════════════════════════════════════════════════════════════
 const CustomerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -104,8 +181,10 @@ const CustomerDashboard = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [complaints, setComplaints] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState(null);
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [toast, setToast] = useState('');
 
   const [profile, setProfile] = useState({
@@ -139,26 +218,40 @@ const CustomerDashboard = () => {
     if (!user) return;
     setDataLoading(true);
     try {
-      const { data: bk } = await supabase
+      const { data: bk, error: bkErr } = await supabase
         .from('bookings').select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+      if (bkErr) console.error('bookings fetch:', bkErr.message);
       setBookings(bk || []);
 
-      const { data: rv } = await supabase
+      const { data: rv, error: rvErr } = await supabase
         .from('reviews').select('*')
         .eq('user_id', user.id);
+      if (rvErr) console.error('reviews fetch:', rvErr.message);
       setReviews(rv || []);
 
+      const { data: cp, error: cpErr } = await supabase
+        .from('complaints').select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (cpErr) console.error('complaints fetch:', cpErr.message);
+      setComplaints(cp || []);
+
       const stored = JSON.parse(localStorage.getItem(`ta_profile_${user.id}`) || '{}');
-      setProfile(prev => ({ ...prev, ...stored, email: user.email, full_name: stored.full_name || user.user_metadata?.full_name || '' }));
+      setProfile(prev => ({
+        ...prev,
+        ...stored,
+        email: user.email,
+        full_name: stored.full_name || user.user_metadata?.full_name || '',
+      }));
     } catch (e) { console.error(e); }
     setDataLoading(false);
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // ── Save profile ──────────────────────────────────────────────
+  // ── Save profile ───────────────────────────────────────────────
   const saveProfile = async () => {
     setProfileSaving(true);
     localStorage.setItem(`ta_profile_${user.id}`, JSON.stringify(profile));
@@ -168,7 +261,7 @@ const CustomerDashboard = () => {
     showToast('Profile updated successfully!');
   };
 
-  // ── Submit review ─────────────────────────────────────────────
+  // ── Submit review ──────────────────────────────────────────────
   const submitReview = async ({ bookingId, roomId, rating, comment }) => {
     const { error } = await supabase.from('reviews').insert([{
       user_id: user.id,
@@ -181,6 +274,23 @@ const CustomerDashboard = () => {
     }]);
     if (error) { alert('Could not submit review: ' + error.message); return; }
     showToast('Review submitted — thank you!');
+    fetchData();
+  };
+
+  // ── Submit complaint ───────────────────────────────────────────
+  const submitComplaint = async ({ bookingId, roomId, subject, description }) => {
+    const { error } = await supabase.from('complaints').insert([{
+      user_id: user.id,
+      room_id: roomId || null,
+      subject,
+      description,
+      status: 'open',
+      guest_name: profile.full_name || user.email,
+      guest_email: user.email,
+      created_at: new Date().toISOString(),
+    }]);
+    if (error) { alert('Could not submit complaint: ' + error.message); return; }
+    showToast('Complaint registered. We will look into it shortly!');
     fetchData();
   };
 
@@ -200,8 +310,10 @@ const CustomerDashboard = () => {
     const map = {
       confirmed: 'badge badge-success', cancelled: 'badge badge-danger',
       pending: 'badge badge-warning', completed: 'badge badge-neutral',
+      open: 'badge badge-danger', in_progress: 'badge badge-warning',
+      resolved: 'badge badge-success',
     };
-    return <span className={map[status] || 'badge badge-neutral'}>{status}</span>;
+    return <span className={map[status] || 'badge badge-neutral'}>{status?.replace('_', ' ')}</span>;
   };
 
   const cardStyle = {
@@ -238,10 +350,11 @@ const CustomerDashboard = () => {
         </div>
 
         <nav style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
-          <NavItem icon={LayoutDashboard} label="Overview"   id="overview"  active={activeTab==='overview'}  onClick={setActiveTab} />
-          <NavItem icon={BedDouble}       label="My Bookings" id="bookings"  active={activeTab==='bookings'}  onClick={setActiveTab} />
-          <NavItem icon={Star}            label="My Reviews"  id="reviews"   active={activeTab==='reviews'}   onClick={setActiveTab} />
-          <NavItem icon={User}            label="Profile"     id="profile"   active={activeTab==='profile'}   onClick={setActiveTab} />
+          <NavItem icon={LayoutDashboard}      label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={setActiveTab} />
+          <NavItem icon={BedDouble}            label="My Bookings" id="bookings"    active={activeTab==='bookings'}    onClick={setActiveTab} />
+          <NavItem icon={Star}                 label="My Reviews"  id="reviews"     active={activeTab==='reviews'}     onClick={setActiveTab} />
+          <NavItem icon={MessageSquareWarning} label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={setActiveTab} />
+          <NavItem icon={User}                 label="Profile"     id="profile"     active={activeTab==='profile'}     onClick={setActiveTab} />
         </nav>
 
         <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)' }}>
@@ -264,10 +377,11 @@ const CustomerDashboard = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
               {[
-                { label: 'Total Bookings', value: bookings.length, accent: '#2563eb' },
-                { label: 'Confirmed Stays', value: bookings.filter(b => b.status === 'confirmed').length, accent: '#059669' },
-                { label: 'Total Spent', value: `$${bookings.reduce((s, b) => s + (b.total_price || 0), 0).toLocaleString()}`, accent: 'var(--accent-color)' },
-                { label: 'Reviews Given', value: reviews.length, accent: '#d97706' },
+                { label: 'Total Bookings',  value: bookings.length,                                                               accent: '#2563eb' },
+                { label: 'Confirmed Stays', value: bookings.filter(b => b.status === 'confirmed').length,                         accent: '#059669' },
+                { label: 'Total Spent',     value: `$${bookings.reduce((s, b) => s + (b.total_price || 0), 0).toLocaleString()}`, accent: 'var(--accent-color)' },
+                { label: 'Reviews Given',   value: reviews.length,                                                                accent: '#d97706' },
+                { label: 'Complaints',      value: complaints.length,                                                             accent: '#dc2626' },
               ].map((s, i) => (
                 <div key={i} style={{ ...cardStyle, padding: '1.25rem', borderLeft: `4px solid ${s.accent}` }}>
                   <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', margin: '0 0 0.4rem' }}>{s.label}</p>
@@ -396,6 +510,48 @@ const CustomerDashboard = () => {
           </div>
         )}
 
+        {/* ════ COMPLAINTS ════ */}
+        {activeTab === 'complaints' && (
+          <div className="animate-fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', color: 'var(--text-main)', margin: 0 }}>My Complaints</h1>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowComplaintModal(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <MessageSquareWarning size={16} /> New Complaint
+              </button>
+            </div>
+
+            {complaints.length === 0 ? (
+              <div style={{ ...cardStyle, padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <MessageSquareWarning size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No complaints registered.</p>
+                <p style={{ fontSize: '0.88rem', marginTop: '0.5rem' }}>If you face any issue during your stay, click "New Complaint" to let us know.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {complaints.map(c => (
+                  <div key={c.id} style={{ ...cardStyle, padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                      <div>
+                        <p style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem', fontSize: '1rem' }}>{c.subject}</p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {c.room_id ? `Room #${c.room_id} · ` : ''}
+                          {new Date(c.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                      {statusBadge(c.status)}
+                    </div>
+                    <p style={{ color: 'var(--text-main)', lineHeight: 1.7, margin: 0, fontSize: '0.9rem' }}>{c.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ════ PROFILE ════ */}
         {activeTab === 'profile' && (
           <div className="animate-fade-in">
@@ -476,7 +632,7 @@ const CustomerDashboard = () => {
 
               <div style={{ ...cardStyle, padding: '1.75rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <CheckCircle size={18} color="var(--accent-color)" /> ID & Verification
+                  <CheckCircle size={18} color="var(--accent-color)" /> ID &amp; Verification
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
                   <div>
@@ -549,6 +705,14 @@ const CustomerDashboard = () => {
           booking={reviewTarget}
           onClose={() => setReviewTarget(null)}
           onSubmit={submitReview}
+        />
+      )}
+
+      {showComplaintModal && (
+        <ComplaintModal
+          bookings={bookings}
+          onClose={() => setShowComplaintModal(false)}
+          onSubmit={submitComplaint}
         />
       )}
     </div>

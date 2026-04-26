@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BedDouble, CreditCard, UserCog,
   LogOut, ShieldAlert, RefreshCw, Plus, X, Save,
-  TrendingUp, CheckCircle, AlertCircle, Trash2
+  CheckCircle, Trash2, Star, MessageSquareWarning, AlertCircle
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
-// ── Shared input style for light theme ──────────────────────────
+// ── Shared input style ───────────────────────────────────────────
 const fi = {
   width: '100%', padding: '0.75rem 0.9rem',
   border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '6px',
@@ -74,7 +74,10 @@ const AdminDashboard = () => {
   const [rooms, setRooms] = useState([]);
   const [staff, setStaff] = useState([]);
   const [guests, setGuests] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [complaints, setComplaints] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Modals
   const [showAddRoom, setShowAddRoom] = useState(false);
@@ -109,23 +112,56 @@ const AdminDashboard = () => {
     verifyAdmin();
   }, []);
 
-  // ── Data fetch ──────────────────────────────────────────────────
+  // ── Data fetch (all tabs) ────────────────────────────────────────
   const fetchDashboardData = useCallback(async () => {
     if (authState !== 'authorized') return;
     setDataLoading(true);
     try {
+      // ── Bookings ──
       const { data: allBookings } = await supabase
         .from('bookings').select('*').order('created_at', { ascending: false });
       const bookingsList = allBookings || [];
       setBookings(bookingsList);
 
+      // ── Rooms ──
       const { data: allRooms } = await supabase.from('rooms').select('*').order('name');
-      setRooms(allRooms || []);
+      const roomsList = allRooms || [];
 
+      // Auto-mark rooms as occupied when they have an active confirmed booking today
+      const today = new Date().toISOString().split('T')[0];
+      const updatedRooms = await Promise.all(
+        roomsList.map(async (room) => {
+          const activeBooking = bookingsList.find(
+            b => b.room_id === room.id &&
+                 b.status === 'confirmed' &&
+                 b.check_in <= today &&
+                 b.check_out >= today
+          );
+          const shouldBeOccupied = !!activeBooking;
+          const isCurrentlyVacant = room.status === 'vacant';
+
+          if (shouldBeOccupied && isCurrentlyVacant) {
+            // Update room status to occupied in Supabase
+            await supabase.from('rooms').update({ status: 'occupied' }).eq('id', room.id);
+            return { ...room, status: 'occupied' };
+          }
+
+          // If no active booking and room is marked occupied, revert to vacant
+          if (!shouldBeOccupied && room.status === 'occupied') {
+            await supabase.from('rooms').update({ status: 'vacant' }).eq('id', room.id);
+            return { ...room, status: 'vacant' };
+          }
+
+          return room;
+        })
+      );
+      setRooms(updatedRooms);
+
+      // ── Staff (localStorage) ──
       const storedStaff = JSON.parse(localStorage.getItem('ta_staff') || '[]');
       setStaff(storedStaff);
 
-      // Build guests list from bookings
+      // ── Guests (derived from bookings) ──
       const uniqueGuests = [];
       const seenKeys = new Set();
       bookingsList.forEach(b => {
@@ -146,31 +182,55 @@ const AdminDashboard = () => {
       });
       setGuests(uniqueGuests);
 
+      // ── Reviews ──
+      const { data: allReviews } = await supabase
+        .from('reviews').select('*').order('created_at', { ascending: false });
+      setReviews(allReviews || []);
+
+      // ── Complaints ──
+      const { data: allComplaints } = await supabase
+        .from('complaints').select('*').order('created_at', { ascending: false });
+      setComplaints(allComplaints || []);
+
+      // ── Stats ──
       const revenue = bookingsList.reduce((s, b) => s + (b.total_price || 0), 0);
       const confirmed = bookingsList.filter(b => b.status === 'confirmed').length;
-      const totalRooms = (allRooms || []).length;
-      const occupied = (allRooms || []).filter(r => r.status === 'occupied').length;
+      const totalRooms = updatedRooms.length;
+      const occupied = updatedRooms.filter(r => r.status === 'occupied').length;
+      const openComplaints = (allComplaints || []).filter(c => c.status === 'open').length;
       setStats({
         revenue,
         occupancy: totalRooms > 0 ? Math.round((occupied / totalRooms) * 100) : 0,
         activeBookings: confirmed,
         totalGuests: uniqueGuests.length,
+        openComplaints,
       });
     } catch (err) { console.error(err); }
     setDataLoading(false);
+    setRefreshing(false);
   }, [authState]);
 
   useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
 
+  // ── Real-time subscriptions ─────────────────────────────────────
   useEffect(() => {
     if (authState !== 'authorized') return;
     const ch = supabase.channel('admin-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, fetchDashboardData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' },   fetchDashboardData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' },    fetchDashboardData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, fetchDashboardData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' },      fetchDashboardData)
       .subscribe();
     return () => supabase.removeChannel(ch);
   }, [authState, fetchDashboardData]);
 
-  // ── Room CRUD ────────────────────────────────────────────────────
+  // ── Refresh handler (works on all tabs) ─────────────────────────
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
+
+  // ── Room CRUD ─────────────────────────────────────────────────────
   const saveRoom = async () => {
     if (!roomForm.name || !roomForm.price) return;
     setRoomSaving(true);
@@ -187,8 +247,14 @@ const AdminDashboard = () => {
   };
 
   const deleteRoom = async (id) => {
-    if (!confirm('Delete this room?')) return;
+    if (!window.confirm('Delete this room?')) return;
     await supabase.from('rooms').delete().eq('id', id);
+    fetchDashboardData();
+  };
+
+  // ── Complaint status update ──────────────────────────────────────
+  const updateComplaintStatus = async (id, status) => {
+    await supabase.from('complaints').update({ status }).eq('id', id);
     fetchDashboardData();
   };
 
@@ -218,11 +284,20 @@ const AdminDashboard = () => {
       pending: 'badge badge-warning', completed: 'badge badge-neutral',
       vacant: 'badge badge-success', occupied: 'badge badge-warning',
       maintenance: 'badge badge-danger',
+      open: 'badge badge-danger', in_progress: 'badge badge-warning',
+      resolved: 'badge badge-success',
     };
-    return <span className={map[status] || 'badge badge-neutral'}>{status}</span>;
+    return <span className={map[status] || 'badge badge-neutral'}>{status?.replace('_', ' ')}</span>;
   };
 
-  // ── Guards ───────────────────────────────────────────────────────
+  const tabTitle = {
+    overview: 'Overview', rooms: 'Room Management',
+    guests: 'Guests', payments: 'Payments',
+    staff: 'Staff Management', reviews: 'Customer Reviews',
+    complaints: 'Complaints',
+  };
+
+  // ── Guards ────────────────────────────────────────────────────────
   if (authState === 'loading') return (
     <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-subtle)' }}>
       <p style={{ color: 'var(--text-muted)' }}>Verifying admin access…</p>
@@ -233,7 +308,7 @@ const AdminDashboard = () => {
     <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-subtle)', flexDirection: 'column', gap: '1.5rem' }}>
       <ShieldAlert size={64} color="var(--danger)" />
       <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', color: 'var(--text-main)' }}>Access Denied</h2>
-      <p style={{ color: 'var(--text-muted)', maxWidth: '400px', textAlign: 'center' }}>You do not have administrator privileges. Please log in with your admin account.</p>
+      <p style={{ color: 'var(--text-muted)', maxWidth: '400px', textAlign: 'center' }}>You do not have administrator privileges.</p>
       <button className="btn btn-primary" onClick={() => navigate('/login')}>Go to Login</button>
     </div>
   );
@@ -248,11 +323,13 @@ const AdminDashboard = () => {
           <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.2rem 0 0', textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Console</p>
         </div>
         <nav style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
-          <SidebarItem icon={LayoutDashboard} label="Overview"  id="overview" active={activeTab==='overview'} onClick={setActiveTab} />
-          <SidebarItem icon={BedDouble}       label="Rooms"     id="rooms"    active={activeTab==='rooms'}    onClick={setActiveTab} />
-          <SidebarItem icon={Users}           label="Guests"    id="guests"   active={activeTab==='guests'}   onClick={setActiveTab} />
-          <SidebarItem icon={CreditCard}      label="Payments"  id="payments" active={activeTab==='payments'} onClick={setActiveTab} />
-          <SidebarItem icon={UserCog}         label="Staff"     id="staff"    active={activeTab==='staff'}    onClick={setActiveTab} />
+          <SidebarItem icon={LayoutDashboard}      label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={setActiveTab} />
+          <SidebarItem icon={BedDouble}            label="Rooms"       id="rooms"       active={activeTab==='rooms'}       onClick={setActiveTab} />
+          <SidebarItem icon={Users}               label="Guests"      id="guests"      active={activeTab==='guests'}      onClick={setActiveTab} />
+          <SidebarItem icon={CreditCard}          label="Payments"    id="payments"    active={activeTab==='payments'}    onClick={setActiveTab} />
+          <SidebarItem icon={Star}                label="Reviews"     id="reviews"     active={activeTab==='reviews'}     onClick={setActiveTab} />
+          <SidebarItem icon={MessageSquareWarning} label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={setActiveTab} />
+          <SidebarItem icon={UserCog}             label="Staff"       id="staff"       active={activeTab==='staff'}       onClick={setActiveTab} />
         </nav>
         <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)' }}>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', wordBreak: 'break-all' }}>{adminUser?.email}</p>
@@ -264,30 +341,46 @@ const AdminDashboard = () => {
 
       {/* ── Main ────────────────────────────────────────────── */}
       <main style={{ flex: 1, padding: '2rem', overflowX: 'hidden' }}>
+
+        {/* ── Page header with working Refresh ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', color: 'var(--text-main)', margin: 0 }}>
-              { {overview:'Overview', rooms:'Room Management', guests:'Guests', payments:'Payments', staff:'Staff Management'}[activeTab] }
+              {tabTitle[activeTab] || 'Dashboard'}
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
               TopAvenue Admin · {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}
             </p>
           </div>
-          <button onClick={fetchDashboardData} style={{ background: 'none', border: '1px solid var(--glass-border)', borderRadius: '6px', padding: '0.5rem 0.75rem', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
-            <RefreshCw size={14} /> Refresh
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing || dataLoading}
+            style={{
+              background: 'none', border: '1px solid var(--glass-border)',
+              borderRadius: '6px', padding: '0.5rem 0.75rem', cursor: refreshing ? 'wait' : 'pointer',
+              color: refreshing ? 'var(--accent-color)' : 'var(--text-muted)',
+              display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem',
+              transition: 'all 0.2s',
+            }}
+          >
+            <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
 
         {/* ════ OVERVIEW ════ */}
         {activeTab === 'overview' && (
           <div className="animate-fade-in">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-              <StatCard label="Total Revenue"   value={`$${stats.revenue.toLocaleString()}`} sub="All bookings"   accent="#059669" />
-              <StatCard label="Occupancy Rate"  value={`${stats.occupancy}%`}                sub="Current rooms"  accent="#2563eb" />
-              <StatCard label="Active Bookings" value={stats.activeBookings}                  sub="Confirmed"      accent="#d97706" />
-              <StatCard label="Total Guests"    value={stats.totalGuests}                     sub="Unique guests"  accent="var(--accent-color)" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+              <StatCard label="Total Revenue"    value={`$${stats.revenue.toLocaleString()}`} sub="All bookings"    accent="#059669" />
+              <StatCard label="Occupancy Rate"   value={`${stats.occupancy}%`}                sub="Rooms occupied"  accent="#2563eb" />
+              <StatCard label="Active Bookings"  value={stats.activeBookings}                  sub="Confirmed"       accent="#d97706" />
+              <StatCard label="Total Guests"     value={stats.totalGuests}                     sub="Unique guests"   accent="var(--accent-color)" />
+              <StatCard label="Open Complaints"  value={stats.openComplaints ?? 0}             sub="Needs attention" accent="#dc2626" />
             </div>
-            <div style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+
+            {/* Recent Bookings */}
+            <div style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '1.5rem' }}>
               <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>Recent Bookings</h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{bookings.length} total</span>
@@ -304,7 +397,7 @@ const AdminDashboard = () => {
                       {bookings.slice(0, 10).map(b => (
                         <tr key={b.id}>
                           <td><div style={{ fontWeight: 600 }}>{b.guest_name || '—'}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{b.guest_email}</div></td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_id ? `Room #${b.room_id}` : '—'}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_name || (b.room_id ? `Room #${b.room_id}` : '—')}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_in}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_out}</td>
                           <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
@@ -316,6 +409,60 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Recent Reviews preview */}
+            {reviews.length > 0 && (
+              <div style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '1.5rem' }}>
+                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>Latest Reviews</h3>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="data-table">
+                    <thead><tr><th>Guest</th><th>Room</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+                    <tbody>
+                      {reviews.slice(0, 5).map(r => (
+                        <tr key={r.id}>
+                          <td style={{ fontWeight: 600 }}>{r.guest_name || '—'}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{r.room_id ? `Room #${r.room_id}` : '—'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '2px' }}>
+                              {[1,2,3,4,5].map(n => <Star key={n} size={13} fill={n <= r.rating ? 'var(--accent-color)' : 'none'} color={n <= r.rating ? 'var(--accent-color)' : '#d1d5db'} />)}
+                            </div>
+                          </td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.comment}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{new Date(r.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Open Complaints preview */}
+            {complaints.filter(c => c.status === 'open').length > 0 && (
+              <div style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <AlertCircle size={16} color="#dc2626" />
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#dc2626' }}>Open Complaints</h3>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="data-table">
+                    <thead><tr><th>Guest</th><th>Subject</th><th>Status</th><th>Date</th></tr></thead>
+                    <tbody>
+                      {complaints.filter(c => c.status === 'open').slice(0, 5).map(c => (
+                        <tr key={c.id}>
+                          <td style={{ fontWeight: 600 }}>{c.guest_name || '—'}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{c.subject}</td>
+                          <td>{statusBadge(c.status)}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{new Date(c.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -408,7 +555,7 @@ const AdminDashboard = () => {
                       <tr key={b.id}>
                         <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{new Date(b.created_at).toLocaleDateString()}</td>
                         <td style={{ fontWeight: 600 }}>{b.guest_name || '—'}</td>
-                        <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_id ? `Room #${b.room_id}` : '—'}</td>
+                        <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_name || (b.room_id ? `Room #${b.room_id}` : '—')}</td>
                         <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
                         <td>{statusBadge(b.status)}</td>
                       </tr>
@@ -417,6 +564,97 @@ const AdminDashboard = () => {
                 </table>
                 {bookings.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No payment records yet.</p>}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════ REVIEWS ════ */}
+        {activeTab === 'reviews' && (
+          <div className="animate-fade-in">
+            <div style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>All Customer Reviews</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{reviews.length} total</span>
+              </div>
+              {dataLoading ? (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '3rem' }}>Loading…</p>
+              ) : reviews.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                  <Star size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
+                  <p>No reviews yet.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="data-table">
+                    <thead><tr><th>Guest</th><th>Room</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+                    <tbody>
+                      {reviews.map(r => (
+                        <tr key={r.id}>
+                          <td style={{ fontWeight: 600 }}>{r.guest_name || '—'}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{r.room_id ? `Room #${r.room_id}` : '—'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+                              {[1,2,3,4,5].map(n => <Star key={n} size={13} fill={n <= r.rating ? 'var(--accent-color)' : 'none'} color={n <= r.rating ? 'var(--accent-color)' : '#d1d5db'} />)}
+                              <span style={{ marginLeft: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{r.rating}/5</span>
+                            </div>
+                          </td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '260px' }}>{r.comment}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{new Date(r.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ════ COMPLAINTS ════ */}
+        {activeTab === 'complaints' && (
+          <div className="animate-fade-in">
+            <div style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>All Complaints</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{complaints.length} total · {complaints.filter(c => c.status === 'open').length} open</span>
+              </div>
+              {dataLoading ? (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '3rem' }}>Loading…</p>
+              ) : complaints.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                  <MessageSquareWarning size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
+                  <p>No complaints registered yet.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="data-table">
+                    <thead><tr><th>Guest</th><th>Email</th><th>Subject</th><th>Description</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+                    <tbody>
+                      {complaints.map(c => (
+                        <tr key={c.id}>
+                          <td style={{ fontWeight: 600 }}>{c.guest_name || '—'}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{c.guest_email || '—'}</td>
+                          <td style={{ fontWeight: 600, fontSize: '0.88rem' }}>{c.subject}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.description}</td>
+                          <td>{statusBadge(c.status)}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{new Date(c.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <select
+                              value={c.status}
+                              onChange={e => updateComplaintStatus(c.id, e.target.value)}
+                              style={{ ...fi, padding: '0.35rem 0.6rem', fontSize: '0.78rem', width: 'auto' }}
+                            >
+                              <option value="open">Open</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="resolved">Resolved</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -504,6 +742,11 @@ const AdminDashboard = () => {
           </div>
         </Modal>
       )}
+
+      {/* Refresh spin animation */}
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 };
