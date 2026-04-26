@@ -8,15 +8,16 @@
 </p>
 
 <p align="center">
-  A full-stack luxury hotel booking web application built with React, Vite, and Supabase. Features a modern light hotel theme, a customer booking dashboard with room reviews, and a fully secured admin console with real-time booking management.
+  A full-stack luxury hotel booking web application built with React, Vite, and Supabase. Features a modern light hotel theme, a multi-step booking wizard with add-ons, a comprehensive customer dashboard with complaints and reviews, and a real-time admin console.
 </p>
 
 ---
 
 # 🏨 Top Avenue | Full-Stack Hotel Booking System
-**[Live Demo]** 👉 **[Click here to view the live deployment on Vercel](https://topavenue.vercel.app)** | 
+**[Live Demo]** 👉 **[Click here to view the live deployment on Vercel](https://topavenue.vercel.app)**
 
 ---
+
 ## 📸 Screenshots
 
 > *(Add screenshots of your Home page, Customer Dashboard, and Admin Console here)*
@@ -26,39 +27,31 @@
 ## ✨ Features
 
 ### 🌐 Public Website
-- Elegant light-themed homepage with a transparent-to-solid scroll navbar
-- Hero section with a prominent booking bar (check-in, check-out, guests)
-- Featured Suites section pulled from the Supabase `rooms` table
-- "Why Book Direct" perks section
-- Guest testimonials / reviews display
-- CTA banner and site footer with navigation links
+- **Elegant Theme**: Light-themed homepage with a transparent-to-solid scroll navbar.
+- **Dynamic Suites**: Featured Suites section pulled directly from the Supabase `rooms` table.
+- **Booking Bar**: Hero section with a real-time booking bar for quick availability checks.
 
 ### 👤 Customer Portal
-- **Secure authentication** via Supabase Auth (sign up, log in, email confirmation)
-- **My Bookings** — full booking history with status badges and booking reference IDs
-- **Room Reviews** — write star-rated reviews for confirmed/completed stays directly from the dashboard
-- **My Reviews** — view all submitted reviews in one place
-- **Extended Profile** — 14 editable fields across 5 sections:
-  - Personal Information (name, phone, DOB, gender, nationality)
-  - Address (street, city, state, country)
-  - ID & Verification (ID type + masked ID number)
-  - Emergency Contact
-  - Stay Preferences (dietary needs, special requests)
+- **Secure Auth**: Powered by Supabase Auth with custom metadata for roles.
+- **4-Step Booking Wizard**: 
+  - 1. Date Selection
+  - 2. Real-time Room Availability
+  - 3. **Optional Add-ons** (Airport Transfer, Breakfast Buffet, Spa Access)
+  - 4. Summary & Payment (Stripe integration ready)
+- **My Bookings**: Full history with status badges and reference IDs.
+- **Complaint System**: Register complaints for specific bookings with real-time status tracking (Open, In Progress, Resolved).
+- **Room Reviews**: Write and view star-rated reviews for completed stays.
+- **Extended Profile**: 14+ editable fields across Personal Info, Address, ID Verification, Emergency Contact, and Stay Preferences.
 
 ### 🛡️ Admin Console
-- **Role-based access control** — only accounts with `role: admin` in Supabase can access `/admin`
-- **Access Denied** screen for all non-admin users
-- **Real-time booking feed** via Supabase Realtime subscriptions
-- **Overview** — live stats (revenue, occupancy rate, active bookings, unique guests) + recent bookings table
-- **Room Management** — add rooms (name, description, price, capacity, status) and delete existing ones
-- **Guests Page** — auto-populated from booking data (name, email, booking count, total spent, last stay)
-- **Payment Ledger** — full payment record across all bookings
-- **Staff Management** — add and remove staff members (name, role, email, phone)
-
-### 🔐 Security
-- Admin dashboard is server-side role-checked on every load
-- `/signup` route includes a guard — if an admin session is active it redirects to the admin panel, preventing new admin account creation via the UI
-- No public path can access the admin dashboard without valid admin credentials
+- **Role-Based Security**: Strict access control ensuring only `role: admin` can access management features.
+- **Live Stats Dashboard**: Real-time overview of Revenue, Occupancy, Active Bookings, and Open Complaints.
+- **Auto-Occupancy Logic**: Rooms are automatically marked as **Occupied** if they have a confirmed booking starting today.
+- **Room Management**: Full CRUD operations for rooms including price and capacity updates.
+- **Complaint Resolution**: View all guest complaints and update their status in real-time.
+- **Staff Management**: Add and track staff members with roles and contact info.
+- **Guest Insights**: Auto-populated guest directory with booking frequency and total spend metrics.
+- **Real-time Sync**: Uses Supabase Realtime to update the dashboard instantly when new bookings or reviews arrive.
 
 ---
 
@@ -88,22 +81,17 @@ topavenue/
 │   │   ├── Navbar.jsx          # Scroll-aware transparent → solid navbar
 │   │   └── Navbar.css
 │   ├── pages/
-│   │   ├── Home.jsx            # Landing page with booking bar & sections
-│   │   ├── Home.css
-│   │   ├── Login.jsx           # Split-panel login with eye-toggle
-│   │   ├── Signup.jsx          # Split-panel signup with validation
-│   │   ├── BookingFlow.jsx     # 4-step booking wizard
-│   │   ├── CustomerDashboard.jsx  # Customer portal (bookings, reviews, profile)
-│   │   ├── AdminDashboard.jsx     # Admin console (rooms, guests, staff, payments)
-│   │   └── WhyBookDirect.jsx
-│   ├── supabaseClient.js       # Supabase client initialisation
-│   ├── App.jsx                 # Routes + SignupGuard
-│   ├── App.css
-│   ├── index.css               # Global CSS variables & utility classes
+│   │   ├── Home.jsx            # Landing page with booking bar
+│   │   ├── Login.jsx           # Split-panel login
+│   │   ├── Signup.jsx          # Signup with role guards
+│   │   ├── BookingFlow.jsx     # 4-step wizard with Add-ons
+│   │   ├── CustomerDashboard.jsx # Portal: Bookings, Reviews, Complaints, Profile
+│   │   └── AdminDashboard.jsx  # Console: Stats, Rooms, Complaints, Staff, Guests
+│   ├── supabaseClient.js       # Supabase initialization
+│   ├── App.jsx                 # Routes & Protected Route logic
+│   ├── index.css               # Global theme & CSS variables
 │   └── main.jsx
-├── .env                        # Supabase credentials (never commit this)
-├── .gitignore
-├── index.html
+├── supabase_migration.sql      # Full database schema & RLS policies
 ├── package.json
 └── vite.config.js
 ```
@@ -113,51 +101,39 @@ topavenue/
 ## ⚡ Getting Started
 
 ### Prerequisites
+- Node.js v18+
+- A Supabase account
 
-- [Node.js](https://nodejs.org/) v18 or higher
-- A [Supabase](https://supabase.com) account and project
-
-### 1. Clone the repository
-
+### 1. Clone & Install
 ```bash
 git clone https://github.com/your-username/topavenue.git
 cd topavenue
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configure environment variables
-
-Create a `.env` file in the project root:
-
+### 2. Configure Env
+Create a `.env` file:
 ```env
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key
 ```
 
-> Find these in your Supabase project under **Settings → API**.
-
-### 4. Set up the database
-
-Run the following SQL in your Supabase **SQL Editor**:
+### 3. Database Setup
+Run the following SQL in your Supabase **SQL Editor** (or use `supabase_migration.sql`):
 
 ```sql
--- Rooms table
+-- 1. Rooms Table
 CREATE TABLE rooms (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
   price NUMERIC NOT NULL,
   capacity INTEGER DEFAULT 2,
-  status TEXT DEFAULT 'vacant',  -- vacant | occupied | maintenance
+  status TEXT DEFAULT 'vacant', -- vacant | occupied | maintenance
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Bookings table
+-- 2. Bookings Table
 CREATE TABLE bookings (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id),
@@ -169,11 +145,11 @@ CREATE TABLE bookings (
   total_price NUMERIC DEFAULT 0,
   guest_name TEXT,
   guest_email TEXT,
-  status TEXT DEFAULT 'confirmed',  -- confirmed | pending | cancelled | completed
+  status TEXT DEFAULT 'confirmed', -- confirmed | pending | cancelled | completed
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Reviews table
+-- 3. Reviews Table
 CREATE TABLE reviews (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id),
@@ -185,115 +161,67 @@ CREATE TABLE reviews (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable Row Level Security
-ALTER TABLE rooms    ENABLE ROW LEVEL SECURITY;
+-- 4. Complaints Table
+CREATE TABLE complaints (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  room_id UUID REFERENCES rooms(id),
+  subject TEXT NOT NULL,
+  description TEXT NOT NULL,
+  status TEXT DEFAULT 'open', -- open | in_progress | resolved
+  guest_name TEXT,
+  guest_email TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS & Policies
+ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reviews  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE complaints ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
-CREATE POLICY "Rooms are public" ON rooms FOR SELECT USING (true);
-CREATE POLICY "Admins manage rooms" ON rooms FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
-
-CREATE POLICY "Users see own bookings" ON bookings FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users create bookings"  ON bookings FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Admins see all bookings" ON bookings FOR SELECT USING (auth.jwt() ->> 'role' = 'admin');
-
-CREATE POLICY "Users see own reviews"   ON reviews FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users create reviews"    ON reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- (Policies available in supabase_migration.sql)
 ```
 
-### 5. Create an Admin account
-
-In **Supabase → Authentication → Users**, create a new user, then run:
-
+### 4. Set Admin Access
+Update your user in the Supabase Dashboard:
 ```sql
--- Replace with your admin user's UUID
 UPDATE auth.users
 SET raw_user_meta_data = raw_user_meta_data || '{"role": "admin"}'::jsonb
-WHERE id = 'your-admin-user-uuid-here';
+WHERE id = 'your-user-uuid';
 ```
-
-> Once set, this admin account is the only way to access `/admin`. No new admin accounts can be created via the UI.
-
-### 6. Run the development server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
 ## 🚀 Deployment
 
-### Build for production
-
+Build the production bundle:
 ```bash
 npm run build
 ```
-
-The output goes to the `dist/` folder — deploy to **Vercel**, **Netlify**, or any static host.
-
-### Vercel (recommended)
-
-```bash
-npm install -g vercel
-vercel
-```
-
-Set your `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as environment variables in the Vercel dashboard.
-
----
-
-## 🔑 Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon/public key |
-
-> ⚠️ **Never commit your `.env` file.** It is already listed in `.gitignore`.
+Deploy the `dist` folder to **Vercel** or **Netlify**.
 
 ---
 
 ## 📋 Roadmap
-
-- [ ] Stripe payment gateway integration
-- [ ] Real room images with Supabase Storage
-- [ ] Email confirmation on booking via Supabase Edge Functions
-- [ ] Room availability calendar view
-- [ ] Admin booking status management (approve / cancel)
-- [ ] Multi-language support (i18n)
-- [ ] Mobile-responsive sidebar for dashboards
+- [ ] Stripe Payment Integration
+- [ ] Supabase Storage for Room Images
+- [ ] Edge Functions for Email Notifications
+- [ ] Multi-language Support (i18n)
+- [ ] Mobile-responsive dashboards
 
 ---
 
 ## 🤝 Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a Pull Request
+Pull requests are welcome. For major changes, please open an issue first.
 
 ---
 
 ## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
+MIT License.
 
 ## 👨‍💻 Author
-
 **Shubhankar**
-- GitHub: [@your-username](https://github.com/your-username)
 
----
+<p align="center">Built with ❤️ using React + Supabase</p>
 
-<p align="center">
-  Built with ❤️ using React + Supabase
-</p>
