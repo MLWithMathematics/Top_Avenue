@@ -262,11 +262,18 @@ const CustomerDashboard = () => {
   };
 
   // ── Submit review ──────────────────────────────────────────────
+  // Helper: returns value only if it looks like a UUID, otherwise null
+  const toUuidOrNull = (val) => {
+    if (!val) return null;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(String(val)) ? val : null;
+  };
+
   const submitReview = async ({ bookingId, roomId, rating, comment }) => {
     const { error } = await supabase.from('reviews').insert([{
       user_id: user.id,
-      booking_id: bookingId,
-      room_id: roomId,
+      booking_id: toUuidOrNull(bookingId),
+      room_id: toUuidOrNull(roomId),
       rating,
       comment,
       guest_name: profile.full_name || user.email,
@@ -281,7 +288,7 @@ const CustomerDashboard = () => {
   const submitComplaint = async ({ bookingId, roomId, subject, description }) => {
     const { error } = await supabase.from('complaints').insert([{
       user_id: user.id,
-      room_id: roomId || null,
+      room_id: toUuidOrNull(roomId),
       subject,
       description,
       status: 'open',

@@ -1,11 +1,11 @@
 # Graph Report - D:\Antigravity\TopAvenue  (2026-04-26)
 
 ## Corpus Check
-- 15 files · ~17,260 words
+- 15 files · ~19,571 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 34 nodes · 19 edges · 15 communities detected
+- 35 nodes · 20 edges · 15 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
@@ -34,7 +34,7 @@
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 1 - "Community 1"

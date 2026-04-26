@@ -135,7 +135,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
-      "community": 0,
+      "community": 1,
       "norm_label": "admindashboard.jsx"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L25",
       "id": "admindashboard_statcard",
-      "community": 0,
+      "community": 1,
       "norm_label": "statcard()"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L39",
       "id": "admindashboard_modal",
-      "community": 0,
+      "community": 1,
       "norm_label": "modal()"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L52",
       "id": "admindashboard_sidebaritem",
-      "community": 0,
+      "community": 1,
       "norm_label": "sidebaritem()"
     },
     {
@@ -171,7 +171,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L68",
       "id": "admindashboard_admindashboard",
-      "community": 0,
+      "community": 1,
       "norm_label": "admindashboard()"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
-      "community": 1,
+      "community": 0,
       "norm_label": "customerdashboard.jsx"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L25",
       "id": "customerdashboard_navitem",
-      "community": 1,
+      "community": 0,
       "norm_label": "navitem()"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L41",
       "id": "customerdashboard_starpicker",
-      "community": 1,
+      "community": 0,
       "norm_label": "starpicker()"
     },
     {
@@ -225,16 +225,25 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L52",
       "id": "customerdashboard_reviewmodal",
-      "community": 1,
+      "community": 0,
       "norm_label": "reviewmodal()"
+    },
+    {
+      "label": "ComplaintModal()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L101",
+      "id": "customerdashboard_complaintmodal",
+      "community": 0,
+      "norm_label": "complaintmodal()"
     },
     {
       "label": "CustomerDashboard()",
       "file_type": "code",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
-      "source_location": "L101",
+      "source_location": "L178",
       "id": "customerdashboard_customerdashboard",
-      "community": 1,
+      "community": 0,
       "norm_label": "customerdashboard()"
     },
     {
@@ -484,6 +493,18 @@
       "confidence": "EXTRACTED",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L101",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "_tgt": "customerdashboard_complaintmodal",
+      "source": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
+      "target": "customerdashboard_complaintmodal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
+      "source_location": "L178",
       "weight": 1.0,
       "_src": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
       "_tgt": "customerdashboard_customerdashboard",
