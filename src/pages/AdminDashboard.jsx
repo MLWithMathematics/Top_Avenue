@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BedDouble, CreditCard, UserCog,
   LogOut, ShieldAlert, RefreshCw, Plus, X, Save,
-  CheckCircle, Trash2, Star, MessageSquareWarning, AlertCircle, Eye, Pencil
+  CheckCircle, Trash2, Star, MessageSquareWarning, AlertCircle, Eye, Pencil, Hash
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -76,19 +76,21 @@ const AdminDashboard = () => {
   const [guests, setGuests] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [complaints, setComplaints] = useState([]);
+
+  // ── Modal states ──────────────────────────────────────────────
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [selectedReview, setSelectedReview] = useState(null);
   const [showEditRoom, setShowEditRoom] = useState(false);
-  const [editRoomForm, setEditRoomForm] = useState({ id: null, name: '', description: '', price: '', capacity: 2, status: 'vacant' });
+  const [editRoomForm, setEditRoomForm] = useState({ id: null, name: '', description: '', price: '', capacity: 2, quantity: 1, status: 'vacant' });
   const [editRoomSaving, setEditRoomSaving] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Modals
   const [showAddRoom, setShowAddRoom] = useState(false);
   const [showAddStaff, setShowAddStaff] = useState(false);
 
-  // Add Room form
-  const [roomForm, setRoomForm] = useState({ name: '', description: '', price: '', capacity: 2, status: 'vacant' });
+  // Add Room form — includes quantity
+  const [roomForm, setRoomForm] = useState({ name: '', description: '', price: '', capacity: 2, quantity: 1, status: 'vacant' });
   const [roomSaving, setRoomSaving] = useState(false);
 
   // Add Staff form
@@ -116,7 +118,7 @@ const AdminDashboard = () => {
     verifyAdmin();
   }, []);
 
-  // ── Data fetch (all tabs) ────────────────────────────────────────
+  // ── Data fetch ────────────────────────────────────────────────
   const fetchDashboardData = useCallback(async () => {
     if (authState !== 'authorized') return;
     setDataLoading(true);
@@ -131,7 +133,6 @@ const AdminDashboard = () => {
       const { data: allRooms } = await supabase.from('rooms').select('*').order('name');
       const roomsList = allRooms || [];
 
-      // Auto-mark rooms as occupied when they have an active confirmed booking today
       const today = new Date().toISOString().split('T')[0];
       const updatedRooms = await Promise.all(
         roomsList.map(async (room) => {
@@ -142,30 +143,24 @@ const AdminDashboard = () => {
                  b.check_out >= today
           );
           const shouldBeOccupied = !!activeBooking;
-          const isCurrentlyVacant = room.status === 'vacant';
-
-          if (shouldBeOccupied && isCurrentlyVacant) {
-            // Update room status to occupied in Supabase
+          if (shouldBeOccupied && room.status === 'vacant') {
             await supabase.from('rooms').update({ status: 'occupied' }).eq('id', room.id);
             return { ...room, status: 'occupied' };
           }
-
-          // If no active booking and room is marked occupied, revert to vacant
           if (!shouldBeOccupied && room.status === 'occupied') {
             await supabase.from('rooms').update({ status: 'vacant' }).eq('id', room.id);
             return { ...room, status: 'vacant' };
           }
-
           return room;
         })
       );
       setRooms(updatedRooms);
 
-      // ── Staff (localStorage) ──
+      // ── Staff ──
       const storedStaff = JSON.parse(localStorage.getItem('ta_staff') || '[]');
       setStaff(storedStaff);
 
-      // ── Guests (derived from bookings) ──
+      // ── Guests ──
       const uniqueGuests = [];
       const seenKeys = new Set();
       bookingsList.forEach(b => {
@@ -217,7 +212,7 @@ const AdminDashboard = () => {
 
   useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
 
-  // ── Real-time subscriptions ─────────────────────────────────────
+  // ── Real-time subscriptions ───────────────────────────────────
   useEffect(() => {
     if (authState !== 'authorized') return;
     const ch = supabase.channel('admin-rt')
@@ -229,25 +224,24 @@ const AdminDashboard = () => {
     return () => supabase.removeChannel(ch);
   }, [authState, fetchDashboardData]);
 
-  // ── Refresh handler (works on all tabs) ─────────────────────────
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchDashboardData();
-  };
+  const handleRefresh = () => { setRefreshing(true); fetchDashboardData(); };
 
-  // ── Room CRUD ─────────────────────────────────────────────────────
+  // ── Room CRUD ─────────────────────────────────────────────────
   const saveRoom = async () => {
     if (!roomForm.name || !roomForm.price) return;
     setRoomSaving(true);
     const { error } = await supabase.from('rooms').insert([{
-      name: roomForm.name, description: roomForm.description,
-      price: parseFloat(roomForm.price), capacity: parseInt(roomForm.capacity),
+      name: roomForm.name,
+      description: roomForm.description,
+      price: parseFloat(roomForm.price),
+      capacity: parseInt(roomForm.capacity),
+      quantity: parseInt(roomForm.quantity) || 1,
       status: roomForm.status,
     }]);
     setRoomSaving(false);
     if (error) { alert('Error: ' + error.message); return; }
     setShowAddRoom(false);
-    setRoomForm({ name: '', description: '', price: '', capacity: 2, status: 'vacant' });
+    setRoomForm({ name: '', description: '', price: '', capacity: 2, quantity: 1, status: 'vacant' });
     fetchDashboardData();
   };
 
@@ -258,7 +252,15 @@ const AdminDashboard = () => {
   };
 
   const openEditRoom = (room) => {
-    setEditRoomForm({ id: room.id, name: room.name, description: room.description || '', price: room.price, capacity: room.capacity, status: room.status });
+    setEditRoomForm({
+      id: room.id,
+      name: room.name,
+      description: room.description || '',
+      price: room.price,
+      capacity: room.capacity,
+      quantity: room.quantity ?? 1,
+      status: room.status,
+    });
     setShowEditRoom(true);
   };
 
@@ -266,8 +268,11 @@ const AdminDashboard = () => {
     if (!editRoomForm.name || !editRoomForm.price) return;
     setEditRoomSaving(true);
     const { error } = await supabase.from('rooms').update({
-      name: editRoomForm.name, description: editRoomForm.description,
-      price: parseFloat(editRoomForm.price), capacity: parseInt(editRoomForm.capacity),
+      name: editRoomForm.name,
+      description: editRoomForm.description,
+      price: parseFloat(editRoomForm.price),
+      capacity: parseInt(editRoomForm.capacity),
+      quantity: parseInt(editRoomForm.quantity) || 1,
       status: editRoomForm.status,
     }).eq('id', editRoomForm.id);
     setEditRoomSaving(false);
@@ -276,13 +281,13 @@ const AdminDashboard = () => {
     fetchDashboardData();
   };
 
-  // ── Complaint status update ──────────────────────────────────────
+  // ── Complaint status update ───────────────────────────────────
   const updateComplaintStatus = async (id, status) => {
     await supabase.from('complaints').update({ status }).eq('id', id);
     fetchDashboardData();
   };
 
-  // ── Staff CRUD (localStorage) ────────────────────────────────────
+  // ── Staff CRUD ────────────────────────────────────────────────
   const saveStaff = () => {
     if (!staffForm.name || !staffForm.role) return;
     setStaffSaving(true);
@@ -321,7 +326,7 @@ const AdminDashboard = () => {
     complaints: 'Complaints',
   };
 
-  // ── Guards ────────────────────────────────────────────────────────
+  // ── Guards ────────────────────────────────────────────────────
   if (authState === 'loading') return (
     <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-subtle)' }}>
       <p style={{ color: 'var(--text-muted)' }}>Verifying admin access…</p>
@@ -347,13 +352,13 @@ const AdminDashboard = () => {
           <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.2rem 0 0', textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Console</p>
         </div>
         <nav style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
-          <SidebarItem icon={LayoutDashboard}      label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={setActiveTab} />
-          <SidebarItem icon={BedDouble}            label="Rooms"       id="rooms"       active={activeTab==='rooms'}       onClick={setActiveTab} />
-          <SidebarItem icon={Users}               label="Guests"      id="guests"      active={activeTab==='guests'}      onClick={setActiveTab} />
-          <SidebarItem icon={CreditCard}          label="Payments"    id="payments"    active={activeTab==='payments'}    onClick={setActiveTab} />
-          <SidebarItem icon={Star}                label="Reviews"     id="reviews"     active={activeTab==='reviews'}     onClick={setActiveTab} />
-          <SidebarItem icon={MessageSquareWarning} label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={setActiveTab} />
-          <SidebarItem icon={UserCog}             label="Staff"       id="staff"       active={activeTab==='staff'}       onClick={setActiveTab} />
+          <SidebarItem icon={LayoutDashboard}       label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={setActiveTab} />
+          <SidebarItem icon={BedDouble}             label="Rooms"       id="rooms"       active={activeTab==='rooms'}       onClick={setActiveTab} />
+          <SidebarItem icon={Users}                 label="Guests"      id="guests"      active={activeTab==='guests'}      onClick={setActiveTab} />
+          <SidebarItem icon={CreditCard}            label="Payments"    id="payments"    active={activeTab==='payments'}    onClick={setActiveTab} />
+          <SidebarItem icon={Star}                  label="Reviews"     id="reviews"     active={activeTab==='reviews'}     onClick={setActiveTab} />
+          <SidebarItem icon={MessageSquareWarning}  label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={setActiveTab} />
+          <SidebarItem icon={UserCog}               label="Staff"       id="staff"       active={activeTab==='staff'}       onClick={setActiveTab} />
         </nav>
         <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)' }}>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', wordBreak: 'break-all' }}>{adminUser?.email}</p>
@@ -366,7 +371,7 @@ const AdminDashboard = () => {
       {/* ── Main ────────────────────────────────────────────── */}
       <main style={{ flex: 1, padding: '2rem', overflowX: 'hidden' }}>
 
-        {/* ── Page header with working Refresh ── */}
+        {/* Page header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', color: 'var(--text-main)', margin: 0 }}>
@@ -434,7 +439,7 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            {/* Recent Reviews preview */}
+            {/* Latest Reviews preview */}
             {reviews.length > 0 && (
               <div style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: '1.5rem' }}>
                 <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--glass-border)' }}>
@@ -453,7 +458,12 @@ const AdminDashboard = () => {
                               {[1,2,3,4,5].map(n => <Star key={n} size={13} fill={n <= r.rating ? 'var(--accent-color)' : 'none'} color={n <= r.rating ? 'var(--accent-color)' : '#d1d5db'} />)}
                             </div>
                           </td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.comment}</td>
+                          <td style={{ maxWidth: '220px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px', display: 'block' }}>{r.comment}</span>
+                              <button onClick={() => setSelectedReview(r)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-dark)', flexShrink: 0, padding: '0.2rem' }} title="View full review"><Eye size={14} /></button>
+                            </div>
+                          </td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{new Date(r.created_at).toLocaleDateString()}</td>
                         </tr>
                       ))}
@@ -507,17 +517,38 @@ const AdminDashboard = () => {
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table className="data-table">
-                    <thead><tr><th>Name</th><th>Description</th><th>Price/Night</th><th>Capacity</th><th>Status</th><th></th></tr></thead>
+                    <thead>
+                      <tr>
+                        <th>Name / Category</th>
+                        <th>Description</th>
+                        <th>Price/Night</th>
+                        <th>Capacity</th>
+                        <th style={{ textAlign: 'center' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <Hash size={12} /> Qty
+                          </span>
+                        </th>
+                        <th>Status</th>
+                        <th></th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {rooms.map(r => (
                         <tr key={r.id}>
                           <td style={{ fontWeight: 600 }}>{r.name}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '220px' }}>{r.description}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.description}</td>
                           <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${r.price}</td>
                           <td style={{ color: 'var(--text-muted)' }}>{r.capacity} guests</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(201,168,76,0.12)', color: 'var(--accent-dark)', fontWeight: 700, fontSize: '0.85rem', borderRadius: '6px', padding: '0.2rem 0.65rem', minWidth: '32px' }}>
+                              {r.quantity ?? 1}
+                            </span>
+                          </td>
                           <td>{statusBadge(r.status)}</td>
                           <td>
-                            <button onClick={() => openEditRoom(r)} style={{ background: 'none', border: '1px solid var(--accent-color)', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.65rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}><Pencil size={13} /> Modify</button>
+                            <button onClick={() => openEditRoom(r)} style={{ background: 'none', border: '1px solid var(--accent-color)', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.65rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}>
+                              <Pencil size={13} /> Modify
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -526,6 +557,23 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Rooms summary card */}
+            {rooms.length > 0 && (
+              <div style={{ marginTop: '1.25rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+                {[
+                  { label: 'Total Categories', value: rooms.length, accent: '#2563eb' },
+                  { label: 'Total Physical Rooms', value: rooms.reduce((s, r) => s + (r.quantity ?? 1), 0), accent: 'var(--accent-color)' },
+                  { label: 'Currently Occupied', value: rooms.filter(r => r.status === 'occupied').length, accent: '#d97706' },
+                  { label: 'Available', value: rooms.filter(r => r.status === 'vacant').reduce((s, r) => s + (r.quantity ?? 1), 0), accent: '#059669' },
+                ].map((s, i) => (
+                  <div key={i} style={{ background: '#fff', border: '1px solid var(--glass-border)', borderRadius: '10px', padding: '1.1rem', borderLeft: `3px solid ${s.accent}`, boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
+                    <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>{s.label}</p>
+                    <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -623,7 +671,12 @@ const AdminDashboard = () => {
                               <span style={{ marginLeft: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{r.rating}/5</span>
                             </div>
                           </td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '260px' }}>{r.comment}</td>
+                          <td style={{ maxWidth: '260px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '190px', display: 'block' }}>{r.comment}</span>
+                              <button onClick={() => setSelectedReview(r)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-dark)', flexShrink: 0, padding: '0.2rem' }} title="View full review"><Eye size={14} /></button>
+                            </div>
+                          </td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{new Date(r.created_at).toLocaleDateString()}</td>
                         </tr>
                       ))}
@@ -730,13 +783,19 @@ const AdminDashboard = () => {
 
       {/* ══ ADD ROOM MODAL ══ */}
       {showAddRoom && (
-        <Modal title="Add New Room" onClose={() => setShowAddRoom(false)}>
+        <Modal title="Add New Room Category" onClose={() => setShowAddRoom(false)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div><label style={lbl}>Room Name *</label><input style={fi} value={roomForm.name} onChange={e => setRoomForm({...roomForm, name: e.target.value})} placeholder="e.g. Deluxe King Suite" /></div>
+            <div><label style={lbl}>Room Category Name *</label><input style={fi} value={roomForm.name} onChange={e => setRoomForm({...roomForm, name: e.target.value})} placeholder="e.g. Deluxe King Suite" /></div>
             <div><label style={lbl}>Description</label><textarea style={{...fi, resize: 'vertical', minHeight: '80px'}} value={roomForm.description} onChange={e => setRoomForm({...roomForm, description: e.target.value})} placeholder="Room features and amenities…" /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
               <div><label style={lbl}>Price per Night ($) *</label><input style={fi} type="number" min="0" value={roomForm.price} onChange={e => setRoomForm({...roomForm, price: e.target.value})} placeholder="299" /></div>
-              <div><label style={lbl}>Capacity (Guests)</label><input style={fi} type="number" min="1" max="10" value={roomForm.capacity} onChange={e => setRoomForm({...roomForm, capacity: e.target.value})} /></div>
+              <div><label style={lbl}>Capacity (Guests)</label><input style={fi} type="number" min="1" max="20" value={roomForm.capacity} onChange={e => setRoomForm({...roomForm, capacity: e.target.value})} /></div>
+              <div>
+                <label style={lbl}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><Hash size={11} /> Quantity (Rooms)</span>
+                </label>
+                <input style={fi} type="number" min="1" max="500" value={roomForm.quantity} onChange={e => setRoomForm({...roomForm, quantity: e.target.value})} placeholder="1" />
+              </div>
             </div>
             <div><label style={lbl}>Status</label>
               <select style={fi} value={roomForm.status} onChange={e => setRoomForm({...roomForm, status: e.target.value})}>
@@ -745,7 +804,10 @@ const AdminDashboard = () => {
                 <option value="maintenance">Maintenance</option>
               </select>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, background: 'var(--bg-subtle)', borderRadius: '6px', padding: '0.6rem 0.85rem' }}>
+              💡 <strong>Quantity</strong> = how many physical rooms of this category exist (e.g. 5 Deluxe King Suites).
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.25rem' }}>
               <button className="btn btn-ghost" onClick={() => setShowAddRoom(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={saveRoom} disabled={roomSaving} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Save size={15} />{roomSaving ? 'Saving…' : 'Save Room'}
@@ -773,6 +835,33 @@ const AdminDashboard = () => {
         </Modal>
       )}
 
+      {/* ══ VIEW REVIEW MODAL ══ */}
+      {selectedReview && (
+        <Modal title="Review Details" onClose={() => setSelectedReview(null)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div><label style={lbl}>Guest</label><p style={{ color: 'var(--text-main)', fontWeight: 600, margin: 0 }}>{selectedReview.guest_name || '—'}</p></div>
+              <div><label style={lbl}>Room</label><p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.88rem' }}>{selectedReview.room_id ? `Room #${selectedReview.room_id}` : '—'}</p></div>
+              <div>
+                <label style={lbl}>Rating</label>
+                <div style={{ display: 'flex', gap: '3px', alignItems: 'center', marginTop: '0.2rem' }}>
+                  {[1,2,3,4,5].map(n => <Star key={n} size={18} fill={n <= selectedReview.rating ? 'var(--accent-color)' : 'none'} color={n <= selectedReview.rating ? 'var(--accent-color)' : '#d1d5db'} />)}
+                  <span style={{ marginLeft: '0.4rem', fontSize: '0.88rem', color: 'var(--text-muted)' }}>{selectedReview.rating}/5</span>
+                </div>
+              </div>
+              <div><label style={lbl}>Date</label><p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.88rem' }}>{new Date(selectedReview.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p></div>
+            </div>
+            <div>
+              <label style={lbl}>Full Review</label>
+              <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '1rem', color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: 1.7, minHeight: '80px', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>"{selectedReview.comment || 'No comment provided.'}"</div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-primary" onClick={() => setSelectedReview(null)}>Close</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* ══ COMPLAINT DETAIL MODAL ══ */}
       {selectedComplaint && (
         <Modal title="Complaint Details" onClose={() => setSelectedComplaint(null)}>
@@ -793,7 +882,7 @@ const AdminDashboard = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
               <label style={{ ...lbl, marginBottom: 0 }}>Update Status:</label>
-              <select value={selectedComplaint.status} onChange={async e => { const newStatus = e.target.value; await updateComplaintStatus(selectedComplaint.id, newStatus); setSelectedComplaint({ ...selectedComplaint, status: newStatus }); }} style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontFamily: 'var(--font-body)' }}>
+              <select value={selectedComplaint.status} onChange={async e => { const s = e.target.value; await updateComplaintStatus(selectedComplaint.id, s); setSelectedComplaint({ ...selectedComplaint, status: s }); }} style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontFamily: 'var(--font-body)', outline: 'none' }}>
                 <option value="open">Open</option>
                 <option value="in_progress">In Progress</option>
                 <option value="resolved">Resolved</option>
@@ -806,13 +895,17 @@ const AdminDashboard = () => {
 
       {/* ══ EDIT ROOM MODAL ══ */}
       {showEditRoom && (
-        <Modal title="Modify Room" onClose={() => setShowEditRoom(false)}>
+        <Modal title="Modify Room Category" onClose={() => setShowEditRoom(false)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div><label style={lbl}>Room Name *</label><input style={fi} value={editRoomForm.name} onChange={e => setEditRoomForm({...editRoomForm, name: e.target.value})} placeholder="e.g. Deluxe King Suite" /></div>
+            <div><label style={lbl}>Room Category Name *</label><input style={fi} value={editRoomForm.name} onChange={e => setEditRoomForm({...editRoomForm, name: e.target.value})} placeholder="e.g. Deluxe King Suite" /></div>
             <div><label style={lbl}>Description</label><textarea style={{...fi, resize: 'vertical', minHeight: '80px'}} value={editRoomForm.description} onChange={e => setEditRoomForm({...editRoomForm, description: e.target.value})} /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
               <div><label style={lbl}>Price per Night ($) *</label><input style={fi} type="number" min="0" value={editRoomForm.price} onChange={e => setEditRoomForm({...editRoomForm, price: e.target.value})} /></div>
-              <div><label style={lbl}>Capacity (Guests)</label><input style={fi} type="number" min="1" max="10" value={editRoomForm.capacity} onChange={e => setEditRoomForm({...editRoomForm, capacity: e.target.value})} /></div>
+              <div><label style={lbl}>Capacity (Guests)</label><input style={fi} type="number" min="1" max="20" value={editRoomForm.capacity} onChange={e => setEditRoomForm({...editRoomForm, capacity: e.target.value})} /></div>
+              <div>
+                <label style={lbl}><span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}><Hash size={11} /> Quantity</span></label>
+                <input style={fi} type="number" min="1" max="500" value={editRoomForm.quantity} onChange={e => setEditRoomForm({...editRoomForm, quantity: e.target.value})} />
+              </div>
             </div>
             <div><label style={lbl}>Status</label>
               <select style={fi} value={editRoomForm.status} onChange={e => setEditRoomForm({...editRoomForm, status: e.target.value})}>

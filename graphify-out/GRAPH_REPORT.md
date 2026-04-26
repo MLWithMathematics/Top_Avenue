@@ -1,7 +1,7 @@
 # Graph Report - D:\Antigravity\TopAvenue  (2026-04-26)
 
 ## Corpus Check
-- 15 files · ~19,571 words
+- 15 files · ~21,503 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
