@@ -8,6 +8,7 @@ import Signup from './pages/Signup';
 import CustomerDashboard from './pages/CustomerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import BookingFlow from './pages/BookingFlow';
+import ResetPassword from './pages/ResetPassword';
 import { supabase } from './supabaseClient';
 
 // ── Generic route-level auth guard ─────────────────────────────
@@ -89,6 +90,7 @@ function App() {
         <Route path="/why-book-direct"  element={<WhyBookDirect />} />
         <Route path="/login"            element={<Login />} />
         <Route path="/signup"           element={<SignupGuard />} />
+        <Route path="/reset-password"   element={<ResetPassword />} />
         <Route path="/dashboard"        element={<AuthGuard requireRole="customer"><CustomerDashboard /></AuthGuard>} />
         <Route path="/admin"            element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
         <Route path="/book"             element={<AuthGuard requireRole="any"><BookingFlow /></AuthGuard>} />
