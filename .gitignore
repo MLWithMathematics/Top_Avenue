@@ -24,3 +24,4 @@ graphify-out/cache
 *.sln
 *.sw?
 .env
+supabase/.temp

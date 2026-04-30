@@ -1,9 +1,27 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Users, Star, ArrowRight, Wifi, Coffee, Car, Shield, Phone, MapPin } from 'lucide-react';
 import './Home.css';
 
 const Home = () => {
+  const navigate = useNavigate();
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const [barCheckIn,  setBarCheckIn]  = useState('');
+  const [barCheckOut, setBarCheckOut] = useState('');
+  const [barGuests,   setBarGuests]   = useState(2);
+
+  const handleCheckAvailability = () => {
+    // Pass search state to BookingFlow so dates/guests are pre-filled
+    navigate('/book', {
+      state: {
+        checkIn:  barCheckIn  || today,
+        checkOut: barCheckOut || tomorrow,
+        guests:   barGuests,
+      },
+    });
+  };
+
   const rooms = [
     { id: 1, name: 'Deluxe King Suite', desc: 'Spacious 55 sqm suite with panoramic city views, a king bed, and a private lounge area.', price: 299, tag: 'Most Popular' },
     { id: 2, name: 'Ocean View Suite', desc: 'Wake up to stunning sea vistas from your private balcony with premium bedding and spa bath.', price: 499, tag: 'Best Value' },
@@ -48,29 +66,40 @@ const Home = () => {
               <label>Check In</label>
               <div className="input-field">
                 <Calendar size={16} />
-                <input type="date" />
+                <input
+                  type="date"
+                  min={today}
+                  value={barCheckIn}
+                  onChange={e => setBarCheckIn(e.target.value)}
+                />
               </div>
             </div>
             <div className="input-group">
               <label>Check Out</label>
               <div className="input-field">
                 <Calendar size={16} />
-                <input type="date" />
+                <input
+                  type="date"
+                  min={barCheckIn || today}
+                  value={barCheckOut}
+                  onChange={e => setBarCheckOut(e.target.value)}
+                />
               </div>
             </div>
             <div className="input-group">
               <label>Guests</label>
               <div className="input-field">
                 <Users size={16} />
-                <select>
-                  <option>1 Guest</option>
-                  <option>2 Guests</option>
-                  <option>3 Guests</option>
-                  <option>4+ Guests</option>
+                <select value={barGuests} onChange={e => setBarGuests(parseInt(e.target.value))}>
+                  {[1,2,3,4,5,6,7,8].map(n => (
+                    <option key={n} value={n}>{n} Guest{n > 1 ? 's' : ''}</option>
+                  ))}
                 </select>
               </div>
             </div>
-            <Link to="/book" className="btn btn-primary booking-btn">Check Availability</Link>
+            <button onClick={handleCheckAvailability} className="btn btn-primary booking-btn">
+              Check Availability
+            </button>
           </div>
           <div className="booking-auth">
             <span>Members get exclusive rates &amp; perks</span>
@@ -91,10 +120,12 @@ const Home = () => {
           <div className="room-grid" style={{ marginTop: '3rem' }}>
             {rooms.map((room) => (
               <div key={room.id} className="room-card glass-panel">
-                <div className="room-img-placeholder">
-                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', color: 'var(--text-muted)', zIndex: 1 }}>{room.name}</span>
-                  {room.tag && (
-                    <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--accent-color)', color: '#1a1a2e', fontSize: '0.7rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', zIndex: 2 }}>{room.tag}</span>
+              <div className="room-img-placeholder" style={room.image ? { background: `url('${room.image}') center/cover no-repeat`, minHeight: '220px' } : {}}>
+              {!room.image && (
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', color: 'var(--text-muted)', zIndex: 1 }}>{room.name}</span>
+              )}
+              {room.tag && (
+                  <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--accent-color)', color: '#1a1a2e', fontSize: '0.7rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', zIndex: 2 }}>{room.tag}</span>
                   )}
                 </div>
                 <div className="room-info">
@@ -102,7 +133,7 @@ const Home = () => {
                   <p>{room.desc}</p>
                   <div className="room-footer">
                     <span className="price">From ${room.price}<span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>/night</span></span>
-                    <Link to="/book" className="btn btn-ghost" style={{ padding: '0.5rem 0', gap: '0.4rem', fontSize: '0.82rem' }}>Book Now <ArrowRight size={14}/></Link>
+                    <Link to="/book" state={{ checkIn: barCheckIn, checkOut: barCheckOut, guests: barGuests }} className="btn btn-ghost" style={{ padding: '0.5rem 0', gap: '0.4rem', fontSize: '0.82rem' }}>Book Now <ArrowRight size={14}/></Link>
                   </div>
                 </div>
               </div>

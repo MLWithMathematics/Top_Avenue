@@ -1,131 +1,105 @@
 -- ══════════════════════════════════════════════════════════════
--- TopAvenue — Supabase Migration
--- Run this ENTIRE script in Supabase Dashboard → SQL Editor
+-- TopAvenue — Supabase migration
+-- Run this in your Supabase SQL editor before deploying the
+-- updated frontend code.
 -- ══════════════════════════════════════════════════════════════
 
--- ── 1. REVIEWS TABLE ─────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.reviews (
-  id          UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id     UUID        REFERENCES auth.users(id) ON DELETE CASCADE,
-  booking_id  UUID,
-  room_id     UUID,
-  rating      INT         NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  comment     TEXT,
-  guest_name  TEXT,
+-- ── 1. Staff table (replaces localStorage) ───────────────────
+CREATE TABLE IF NOT EXISTS public.staff (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        TEXT        NOT NULL,
+  role        TEXT        NOT NULL,
+  email       TEXT,
+  phone       TEXT,
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+-- Admin-only access (no RLS needed if accessed only via service role,
+-- but for anon/auth key in the frontend restrict to admin sessions)
+ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Customers insert own reviews"   ON public.reviews;
-DROP POLICY IF EXISTS "Customers read own reviews"     ON public.reviews;
-DROP POLICY IF EXISTS "Admin reads all reviews"        ON public.reviews;
-
-CREATE POLICY "Customers insert own reviews" ON public.reviews
-  FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Customers read own reviews" ON public.reviews
-  FOR SELECT TO authenticated
+CREATE POLICY "Admin can manage staff"
+  ON public.staff FOR ALL
   USING (
-    auth.uid() = user_id
-    OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
   );
 
--- ── 2. COMPLAINTS TABLE ───────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.complaints (
-  id          UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id     UUID        REFERENCES auth.users(id) ON DELETE CASCADE,
-  room_id     UUID,
-  subject     TEXT        NOT NULL,
-  description TEXT        NOT NULL,
-  status      TEXT        DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved')),
-  guest_name  TEXT,
-  guest_email TEXT,
-  created_at  TIMESTAMPTZ DEFAULT NOW()
+-- ── 2. Profiles table (replaces localStorage) ────────────────
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id                       UUID  PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name                TEXT,
+  phone                    TEXT,
+  nationality              TEXT,
+  address                  TEXT,
+  city                     TEXT,
+  state                    TEXT,
+  country                  TEXT,
+  date_of_birth            TEXT,
+  gender                   TEXT,
+  id_type                  TEXT,
+  id_number                TEXT,
+  emergency_contact_name   TEXT,
+  emergency_contact_phone  TEXT,
+  dietary_preferences      TEXT,
+  special_requests         TEXT,
+  role                     TEXT        DEFAULT 'customer',
+  updated_at               TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE public.complaints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Customers insert complaints"  ON public.complaints;
-DROP POLICY IF EXISTS "Customers read own complaints" ON public.complaints;
-DROP POLICY IF EXISTS "Admin reads all complaints"   ON public.complaints;
-DROP POLICY IF EXISTS "Admin updates complaints"     ON public.complaints;
+CREATE POLICY "Users can read own profile"
+  ON public.profiles FOR SELECT
+  USING (auth.uid() = id);
 
-CREATE POLICY "Customers insert complaints" ON public.complaints
-  FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can upsert own profile"
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Customers read own complaints" ON public.complaints
-  FOR SELECT TO authenticated
-  USING (
-    auth.uid() = user_id
-    OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+CREATE POLICY "Users can update own profile"
+  ON public.profiles FOR UPDATE
+  USING (auth.uid() = id);
 
-CREATE POLICY "Admin updates complaints" ON public.complaints
-  FOR UPDATE TO authenticated
+-- Admin can read all profiles
+CREATE POLICY "Admin can read all profiles"
+  ON public.profiles FOR SELECT
   USING (
     (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- ── 3. FIX ROOMS RLS (admin can INSERT / UPDATE / DELETE) ─────
-ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
+-- ── 3. Add room_name column to bookings (if not present) ─────
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS room_name TEXT;
 
-DROP POLICY IF EXISTS "Anyone reads rooms"    ON public.rooms;
-DROP POLICY IF EXISTS "Admin inserts rooms"   ON public.rooms;
-DROP POLICY IF EXISTS "Admin updates rooms"   ON public.rooms;
-DROP POLICY IF EXISTS "Admin deletes rooms"   ON public.rooms;
+-- ── 4. Admin reply on complaints ──────────────────────────────
+ALTER TABLE public.complaints
+  ADD COLUMN IF NOT EXISTS admin_reply       TEXT,
+  ADD COLUMN IF NOT EXISTS admin_replied_at  TIMESTAMPTZ;
 
-CREATE POLICY "Anyone reads rooms" ON public.rooms
-  FOR SELECT USING (true);
+-- Allow customers to read their own complaint (including admin reply)
+CREATE POLICY "Users can read own complaints"
+  ON public.complaints FOR SELECT
+  USING (auth.uid() = user_id);
 
-CREATE POLICY "Admin inserts rooms" ON public.rooms
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
-
-CREATE POLICY "Admin updates rooms" ON public.rooms
-  FOR UPDATE TO authenticated
+-- Admin can read all complaints
+CREATE POLICY "Admin can read all complaints"
+  ON public.complaints FOR SELECT
   USING (
     (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
-CREATE POLICY "Admin deletes rooms" ON public.rooms
-  FOR DELETE TO authenticated
+-- Admin can update any complaint (status + reply)
+CREATE POLICY "Admin can update complaints"
+  ON public.complaints FOR UPDATE
   USING (
     (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- ── 4. FIX BOOKINGS RLS (admin reads ALL, customers own) ──────
-ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
+-- ── 5. Room images ─────────────────────────────────────────────
+ALTER TABLE public.rooms
+  ADD COLUMN IF NOT EXISTS image_url TEXT;
 
-DROP POLICY IF EXISTS "Customers insert bookings"    ON public.bookings;
-DROP POLICY IF EXISTS "Customers read own bookings"  ON public.bookings;
-DROP POLICY IF EXISTS "Admin reads all bookings"     ON public.bookings;
-
-CREATE POLICY "Customers insert bookings" ON public.bookings
-  FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Customers read own bookings" ON public.bookings
-  FOR SELECT TO authenticated
-  USING (
-    auth.uid() = user_id
-    OR (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
-
-CREATE POLICY "Admin updates bookings" ON public.bookings
-  FOR UPDATE TO authenticated
-  USING (
-    (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
-    OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-  );
+-- ── 6. Stripe payment_intent_id on bookings ────────────────────
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS stripe_payment_intent_id TEXT,
+  ADD COLUMN IF NOT EXISTS payment_status           TEXT DEFAULT 'pending';

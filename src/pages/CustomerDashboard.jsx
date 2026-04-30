@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BedDouble, Star, User, LogOut,
   Calendar, Clock, Phone, Mail, MapPin, Globe,
-  Edit2, Save, X, CheckCircle, MessageSquareWarning, Send, Eye
+  Edit2, Save, X, CheckCircle, MessageSquareWarning, Send, Eye, XCircle, MessageSquare
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -204,6 +204,12 @@ const CustomerDashboard = () => {
   const [profileEditing, setProfileEditing] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
 
+  // ── Pagination ────────────────────────────────────────────────
+  const PER_PAGE = 8;
+  const [bookingPage, setBookingPage] = useState(1);
+  const pagedBookings = bookings.slice((bookingPage - 1) * PER_PAGE, bookingPage * PER_PAGE);
+  const totalBookingPages = Math.ceil(bookings.length / PER_PAGE);
+
   const navigate = useNavigate();
 
   // ── Auth ───────────────────────────────────────────────────────
@@ -245,13 +251,17 @@ const CustomerDashboard = () => {
       if (cpErr) console.error('complaints fetch:', cpErr.message);
       setComplaints(cp || []);
 
-      const stored = JSON.parse(localStorage.getItem(`ta_profile_${user.id}`) || '{}');
-      setProfile(prev => ({
-        ...prev,
-        ...stored,
-        email: user.email,
-        full_name: stored.full_name || user.user_metadata?.full_name || '',
-      }));
+      // ── Profile (Supabase) ──
+      const { data: profileData } = await supabase
+        .from('profiles').select('*').eq('id', user.id).single();
+      if (profileData) {
+        setProfile(prev => ({
+          ...prev,
+          ...profileData,
+          email: user.email,
+          full_name: profileData.full_name || user.user_metadata?.full_name || '',
+        }));
+      }
     } catch (e) { console.error(e); }
     setDataLoading(false);
   }, [user]);
@@ -261,11 +271,43 @@ const CustomerDashboard = () => {
   // ── Save profile ───────────────────────────────────────────────
   const saveProfile = async () => {
     setProfileSaving(true);
-    localStorage.setItem(`ta_profile_${user.id}`, JSON.stringify(profile));
+    const { error } = await supabase.from('profiles').upsert({
+      id:                      user.id,
+      full_name:               profile.full_name,
+      phone:                   profile.phone,
+      nationality:             profile.nationality,
+      address:                 profile.address,
+      city:                    profile.city,
+      state:                   profile.state,
+      country:                 profile.country,
+      date_of_birth:           profile.date_of_birth,
+      gender:                  profile.gender,
+      id_type:                 profile.id_type,
+      id_number:               profile.id_number,
+      emergency_contact_name:  profile.emergency_contact_name,
+      emergency_contact_phone: profile.emergency_contact_phone,
+      dietary_preferences:     profile.dietary_preferences,
+      special_requests:        profile.special_requests,
+      updated_at:              new Date().toISOString(),
+    });
     await supabase.auth.updateUser({ data: { full_name: profile.full_name } });
     setProfileSaving(false);
+    if (error) { alert('Could not save profile: ' + error.message); return; }
     setProfileEditing(false);
     showToast('Profile updated successfully!');
+  };
+
+  // ── Cancel booking ──────────────────────────────────────────
+  const cancelBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
+    const { error } = await supabase
+      .from('bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', bookingId)
+      .eq('user_id', user.id);          // extra safety: can only cancel own bookings
+    if (error) { alert('Could not cancel booking: ' + error.message); return; }
+    showToast('Booking cancelled.');
+    fetchData();
   };
 
   // ── Submit review ──────────────────────────────────────────────
@@ -492,7 +534,9 @@ const CustomerDashboard = () => {
                   <table className="data-table">
                     <thead><tr><th>Booking Ref</th><th>Room</th><th>Check In</th><th>Check Out</th><th>Guests</th><th>Amount</th><th>Status</th><th>Review</th></tr></thead>
                     <tbody>
-                      {bookings.map(b => (
+                      {pagedBookings.map(b => {
+                          const canCancel = b.status === 'confirmed' && new Date(b.check_in) > new Date();
+                          return (
                         <tr key={b.id}>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.78rem', fontFamily: 'monospace' }}>#{String(b.id).slice(0,8).toUpperCase()}</td>
                           <td style={{ fontWeight: 600 }}>{b.room_name || `Room #${b.room_id}`}</td>
@@ -502,18 +546,38 @@ const CustomerDashboard = () => {
                           <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
                           <td>{statusBadge(b.status)}</td>
                           <td>
-                            {(b.status === 'confirmed' || b.status === 'completed') ? (
-                              hasReviewed(b.id)
-                                ? <span className="badge badge-success"><CheckCircle size={11} style={{ marginRight: 4 }} />Reviewed</span>
-                                : <button className="btn btn-ghost" style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }} onClick={() => setReviewTarget(b)}>
-                                    <Star size={12} />Review
-                                  </button>
-                            ) : <span style={{ color: 'var(--text-light)', fontSize: '0.82rem' }}>—</span>}
+                            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                              {(b.status === 'confirmed' || b.status === 'completed') ? (
+                                hasReviewed(b.id)
+                                  ? <span className="badge badge-success"><CheckCircle size={11} style={{ marginRight: 4 }} />Reviewed</span>
+                                  : <button className="btn btn-ghost" style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }} onClick={() => setReviewTarget(b)}>
+                                      <Star size={12} />Review
+                                    </button>
+                              ) : <span style={{ color: 'var(--text-light)', fontSize: '0.82rem' }}>—</span>}
+                              {canCancel && (
+                                <button
+                                  onClick={() => cancelBooking(b.id)}
+                                  style={{ background: 'none', border: '1px solid rgba(220,38,38,0.4)', cursor: 'pointer', color: '#f87171', padding: '0.3rem 0.6rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem' }}
+                                  title="Cancel this booking"
+                                >
+                                  <XCircle size={13} /> Cancel
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
-                      ))}
+                          );
+                        })}
                     </tbody>
                   </table>
+                  {/* Pagination */}
+                  {totalBookingPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', borderTop: '1px solid var(--glass-border)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                      <span>Page {bookingPage} of {totalBookingPages}</span>
+                      <button onClick={() => setBookingPage(p => Math.max(1, p-1))} disabled={bookingPage === 1} style={{ background: 'none', border: '1px solid var(--glass-border)', borderRadius: '4px', padding: '0.25rem 0.6rem', cursor: 'pointer', color: 'var(--text-muted)' }}>‹</button>
+                      <button onClick={() => setBookingPage(p => Math.min(totalBookingPages, p+1))} disabled={bookingPage === totalBookingPages} style={{ background: 'none', border: '1px solid var(--glass-border)', borderRadius: '4px', padding: '0.25rem 0.6rem', cursor: 'pointer', color: 'var(--text-muted)' }}>›</button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -601,6 +665,20 @@ const CustomerDashboard = () => {
                       {statusBadge(c.status)}
                     </div>
                     <p style={{ color: 'var(--text-main)', lineHeight: 1.7, margin: '0 0 1rem', fontSize: '0.9rem' }}>{c.description}</p>
+                    {/* Admin reply */}
+                    {c.admin_reply && (
+                      <div style={{ background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: '8px', padding: '0.85rem 1rem', marginBottom: '1rem' }}>
+                        <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#2563eb', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <MessageSquare size={12} /> Admin Response
+                        </p>
+                        <p style={{ color: '#1e40af', fontSize: '0.88rem', lineHeight: 1.6, margin: 0 }}>{c.admin_reply}</p>
+                        {c.admin_replied_at && (
+                          <p style={{ fontSize: '0.72rem', color: '#93c5fd', marginTop: '0.4rem', textAlign: 'right' }}>
+                            {new Date(c.admin_replied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
                       <button
                         onClick={() => setSelectedComplaint(c)}

@@ -1,11 +1,11 @@
-# Graph Report - D:\Antigravity\TopAvenue  (2026-04-26)
+# Graph Report - D:\Antigravity\TopAvenue  (2026-04-30)
 
 ## Corpus Check
-- 15 files · ~21,503 words
+- 17 files · ~25,547 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 35 nodes · 20 edges · 15 communities detected
+- 44 nodes · 28 edges · 17 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
@@ -25,8 +25,12 @@
 - [[_COMMUNITY_Community 12|Community 12]]
 - [[_COMMUNITY_Community 13|Community 13]]
 - [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 15|Community 15]]
+- [[_COMMUNITY_Community 16|Community 16]]
 
 ## God Nodes (most connected - your core abstractions)
+1. `computeNights()` - 2 edges
+2. `BookingFlow()` - 2 edges
 
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
@@ -42,20 +46,20 @@ Cohesion: 0.4
 Nodes (0): 
 
 ### Community 2 - "Community 2"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 3 - "Community 3"
-Cohesion: 1.0
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 4 - "Community 4"
-Cohesion: 1.0
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 5 - "Community 5"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): BookingFlow(), computeNights()
 
 ### Community 6 - "Community 6"
 Cohesion: 1.0
@@ -93,30 +97,36 @@ Nodes (0):
 Cohesion: 1.0
 Nodes (0): 
 
+### Community 15 - "Community 15"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 16 - "Community 16"
+Cohesion: 1.0
+Nodes (0): 
+
 ## Knowledge Gaps
-- **Thin community `Community 3`** (2 nodes): `seedRooms.js`, `seed()`
+- **Thin community `Community 6`** (2 nodes): `seedRooms.js`, `seed()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 4`** (2 nodes): `testSupabase.js`, `testConnection()`
+- **Thin community `Community 7`** (2 nodes): `testSupabase.js`, `testConnection()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 5`** (2 nodes): `Navbar.jsx`, `Navbar()`
+- **Thin community `Community 8`** (2 nodes): `Navbar.jsx`, `Navbar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 6`** (2 nodes): `BookingFlow()`, `BookingFlow.jsx`
+- **Thin community `Community 9`** (2 nodes): `Home.jsx`, `Home()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 7`** (2 nodes): `Home.jsx`, `Home()`
+- **Thin community `Community 10`** (2 nodes): `Signup.jsx`, `Signup()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 8`** (2 nodes): `Login.jsx`, `Login()`
+- **Thin community `Community 11`** (2 nodes): `WhyBookDirect.jsx`, `WhyBookDirect()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 9`** (2 nodes): `Signup.jsx`, `Signup()`
+- **Thin community `Community 12`** (1 nodes): `eslint.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 10`** (2 nodes): `WhyBookDirect.jsx`, `WhyBookDirect()`
+- **Thin community `Community 13`** (1 nodes): `vite.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 11`** (1 nodes): `eslint.config.js`
+- **Thin community `Community 14`** (1 nodes): `main.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 12`** (1 nodes): `vite.config.js`
+- **Thin community `Community 15`** (1 nodes): `supabaseClient.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 13`** (1 nodes): `main.jsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 14`** (1 nodes): `supabaseClient.js`
+- **Thin community `Community 16`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions

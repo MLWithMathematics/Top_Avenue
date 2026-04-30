@@ -10,27 +10,63 @@ import AdminDashboard from './pages/AdminDashboard';
 import BookingFlow from './pages/BookingFlow';
 import { supabase } from './supabaseClient';
 
+// ── Generic route-level auth guard ─────────────────────────────
+// requireRole: 'admin' | 'customer' | 'any'
+// Prevents unauthenticated/wrong-role direct URL navigation before
+// the destination component even mounts.
+const AuthGuard = ({ children, requireRole = 'any' }) => {
+  const [status, setStatus] = useState('checking'); // checking | ok | redirect
+  const [destination, setDestination] = useState('/');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setDestination('/login');
+        setStatus('redirect');
+        return;
+      }
+      const role = session.user?.user_metadata?.role;
+      if (requireRole === 'admin' && role !== 'admin') {
+        // Logged-in customer tried to access /admin
+        setDestination('/dashboard');
+        setStatus('redirect');
+        return;
+      }
+      if (requireRole === 'customer' && role === 'admin') {
+        // Admin tried to access /dashboard
+        setDestination('/admin');
+        setStatus('redirect');
+        return;
+      }
+      setStatus('ok');
+    });
+  }, [requireRole]);
+
+  if (status === 'checking') return null;          // brief blank — avoids flash
+  if (status === 'redirect') return <Navigate to={destination} replace />;
+  return children;
+};
+
 // ── Guard: signup is only accessible if no admin session exists
 // In production, the admin account already exists so this effectively
 // blocks new admin creation via the UI for non-admin visitors.
 const SignupGuard = () => {
   const [checking, setChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [redirect, setRedirect] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        // Any logged-in user is redirected — admin to /admin, customers to /dashboard
         const role = session.user?.user_metadata?.role;
-        setIsAdmin(role === 'admin');
+        setRedirect(role === 'admin' ? '/admin' : '/dashboard');
       }
       setChecking(false);
     });
   }, []);
 
   if (checking) return null;
-  // Admin already logged in — redirect to admin panel
-  if (isAdmin) return <Navigate to="/admin" replace />;
-  // Allow regular visitors to sign up as customers
+  if (redirect) return <Navigate to={redirect} replace />;
   return <Signup />;
 };
 
@@ -53,9 +89,9 @@ function App() {
         <Route path="/why-book-direct"  element={<WhyBookDirect />} />
         <Route path="/login"            element={<Login />} />
         <Route path="/signup"           element={<SignupGuard />} />
-        <Route path="/dashboard"        element={<CustomerDashboard />} />
-        <Route path="/admin"            element={<AdminDashboard />} />
-        <Route path="/book"             element={<BookingFlow />} />
+        <Route path="/dashboard"        element={<AuthGuard requireRole="customer"><CustomerDashboard /></AuthGuard>} />
+        <Route path="/admin"            element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
+        <Route path="/book"             element={<AuthGuard requireRole="any"><BookingFlow /></AuthGuard>} />
         <Route path="/rooms"            element={<ComingSoon title="Rooms & Suites" />} />
         <Route path="/dining"           element={<ComingSoon title="Dining" />} />
         <Route path="/contact"          element={<ComingSoon title="Contact Us" />} />

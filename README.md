@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  A full-stack luxury hotel booking web application built with React, Vite, and Supabase. Features a modern light hotel theme, a multi-step booking wizard with add-ons, a comprehensive customer dashboard with complaints and reviews, and a real-time admin console.
+  A full-stack luxury hotel booking web application built with React, Vite, and Supabase. Features a modern light hotel theme, a Stripe-powered multi-step booking wizard with automated email confirmations, a comprehensive customer dashboard with extended profiles and complaint management, and a real-time admin console with guest insights and staff management.
 </p>
 
 ---
@@ -30,27 +30,35 @@
 - **Elegant Theme**: Light-themed homepage with a transparent-to-solid scroll navbar.
 - **Dynamic Suites**: Featured Suites section pulled directly from the Supabase `rooms` table.
 - **Booking Bar**: Hero section with a real-time booking bar for quick availability checks.
+- **Why Book Direct**: Dedicated page highlighting the benefits of direct reservations:
+  - Best Rate Guarantee (Match + 10% discount)
+  - Exclusive Welcome Perks (Welcome drinks, Spa vouchers)
+  - Flexible Cancellations & No Hidden Fees
+
 
 ### 👤 Customer Portal
-- **Secure Auth**: Powered by Supabase Auth with custom metadata for roles.
-- **4-Step Booking Wizard**: 
-  - 1. Date Selection
-  - 2. Real-time Room Availability
-  - 3. **Optional Add-ons** (Airport Transfer, Breakfast Buffet, Spa Access)
-  - 4. Summary & Payment (Stripe integration ready)
-- **My Bookings**: Full history with status badges and reference IDs.
-- **Complaint System**: Register complaints for specific bookings with real-time status tracking (Open, In Progress, Resolved).
-- **Room Reviews**: Write and view star-rated reviews for completed stays.
-- **Extended Profile**: 14+ editable fields across Personal Info, Address, ID Verification, Emergency Contact, and Stay Preferences.
+- **Secure Auth**: Powered by Supabase Auth with custom metadata for roles and **Password Reset** flow.
+- **Enhanced Route Protection**: Custom Auth Guards to prevent unauthorized access and role-based URL redirection.
+- **Enhanced Booking Wizard**: 
+  - 1. Date Selection with **past-date protection** and minimum stay logic.
+  - 2. Real-time Room Availability with **double-booking prevention**.
+  - 3. **Optional Add-ons** (Airport Transfer, Breakfast Buffet, Spa Access).
+  - 4. Summary & **Stripe Payment Integration** (Secure card processing).
+- **Email Confirmations**: Automated HTML emails sent via Supabase Edge Functions upon successful booking.
+- **My Bookings**: Full history with status badges, reference IDs, and **self-service cancellation**.
+- **Complaint System**: Register complaints with real-time status tracking and **Admin responses**.
+- **Room Reviews**: Write, view, and **edit** star-rated reviews for completed stays.
+- **Extended Profile**: 16+ editable fields across Personal Info, Address, ID Verification (Passport/Aadhaar), Emergency Contact, and Stay Preferences.
 
 ### 🛡️ Admin Console
 - **Role-Based Security**: Strict access control ensuring only `role: admin` can access management features.
 - **Live Stats Dashboard**: Real-time overview of Revenue, Occupancy, Active Bookings, and Open Complaints.
 - **Auto-Occupancy Logic**: Rooms are automatically marked as **Occupied** if they have a confirmed booking starting today.
-- **Room Management**: Full CRUD operations for rooms including price and capacity updates.
-- **Complaint Resolution**: View all guest complaints and update their status in real-time.
-- **Staff Management**: Add and track staff members with roles and contact info.
-- **Guest Insights**: Auto-populated guest directory with booking frequency and total spend metrics.
+- **Room Management**: Full CRUD operations for rooms including price, capacity, and **physical quantity** updates.
+- **Complaint Resolution**: View guest complaints and **send direct replies** to guests.
+- **Staff Management**: Integrated staff directory with role tracking.
+- **Guest Insights**: Auto-populated guest directory with booking frequency, **total spend**, and stay history.
+- **Data Pagination**: High-performance paginated tables for Bookings, Guests, Payments, and Reviews.
 - **Real-time Sync**: Uses Supabase Realtime to update the dashboard instantly when new bookings or reviews arrive.
 
 ---
@@ -63,7 +71,9 @@
 | Build Tool | Vite 8 |
 | Routing | React Router DOM v7 |
 | Backend / Database | Supabase (PostgreSQL) |
-| Authentication | Supabase Auth |
+| Authentication | Supabase Auth (with SMTP) |
+| Payments | Stripe API |
+| Serverless Logic | Supabase Edge Functions (Deno) |
 | Realtime | Supabase Realtime |
 | Icons | Lucide React |
 | Styling | Custom CSS (CSS Variables, Light Hotel Theme) |
@@ -82,6 +92,7 @@ topavenue/
 │   │   └── Navbar.css
 │   ├── pages/
 │   │   ├── Home.jsx            # Landing page with booking bar
+│   │   ├── WhyBookDirect.jsx   # Benefits of booking direct
 │   │   ├── Login.jsx           # Split-panel login
 │   │   ├── Signup.jsx          # Signup with role guards
 │   │   ├── BookingFlow.jsx     # 4-step wizard with Add-ons
@@ -128,7 +139,9 @@ CREATE TABLE rooms (
   name TEXT NOT NULL,
   description TEXT,
   price NUMERIC NOT NULL,
-  capacity INTEGER DEFAULT 2,
+  capacity INTEGER NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  image_url TEXT,
   status TEXT DEFAULT 'vacant', -- vacant | occupied | maintenance
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -146,6 +159,8 @@ CREATE TABLE bookings (
   guest_name TEXT,
   guest_email TEXT,
   status TEXT DEFAULT 'confirmed', -- confirmed | pending | cancelled | completed
+  stripe_payment_intent_id TEXT,
+  payment_status TEXT DEFAULT 'pending', -- pending | paid | failed
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -168,9 +183,21 @@ CREATE TABLE complaints (
   room_id UUID REFERENCES rooms(id),
   subject TEXT NOT NULL,
   description TEXT NOT NULL,
+  admin_reply TEXT,
+  admin_replied_at TIMESTAMPTZ,
   status TEXT DEFAULT 'open', -- open | in_progress | resolved
   guest_name TEXT,
   guest_email TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. Staff Table
+CREATE TABLE staff (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  email TEXT,
+  phone TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -183,18 +210,55 @@ ALTER TABLE complaints ENABLE ROW LEVEL SECURITY;
 -- (Policies available in supabase_migration.sql)
 ```
 
-### 4. Set Admin Access
-Update your user in the Supabase Dashboard:
 ```sql
+-- 1. Update user metadata
 UPDATE auth.users
 SET raw_user_meta_data = raw_user_meta_data || '{"role": "admin"}'::jsonb
 WHERE id = 'your-user-uuid';
+
+-- 2. Verify role for RLS (ensure the JWT will contain the role)
+-- The RLS policies use: (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin'
 ```
+
+### 4. Configure Edge Functions
+The platform uses Supabase Edge Functions for emails and payments.
+
+1. **Install Supabase CLI**: `npm install supabase --save-dev`
+2. **Login**: `npx supabase login`
+3. **Link Project**: `npx supabase link --project-ref your-project-id`
+4. **Set Secrets**:
+   ```bash
+   # For Payments
+   npx supabase secrets set STRIPE_SECRET_KEY=sk_test_...
+   
+   # For Emails (Resend.com)
+   npx supabase secrets set RESEND_API_KEY=re_...
+   npx supabase secrets set FROM_EMAIL=bookings@yourdomain.com
+   npx supabase secrets set APP_URL=http://localhost:5173
+   ```
+5. **Deploy**:
+   ```bash
+   npx supabase functions deploy create-payment-intent
+   npx supabase functions deploy send-email
+   ```
+
+---
+
+## 🛠️ Health Check
+Before pushing code to GitHub or deploying to production, run the health check script to ensure everything is configured correctly:
+
+```bash
+npm run health-check
+```
+The script verifies:
+- Required environment variables (`.env`).
+- Project structure and critical files.
+- Dependencies (`node_modules`).
+- Successful production build.
 
 ---
 
 ## 🚀 Deployment
-
 Build the production bundle:
 ```bash
 npm run build
@@ -204,9 +268,10 @@ Deploy the `dist` folder to **Vercel** or **Netlify**.
 ---
 
 ## 📋 Roadmap
-- [ ] Stripe Payment Integration
+- [x] Stripe Payment Integration
+- [x] Edge Functions for Email Notifications
+- [x] Forgot Password Flow
 - [ ] Supabase Storage for Room Images
-- [ ] Edge Functions for Email Notifications
 - [ ] Multi-language Support (i18n)
 - [ ] Mobile-responsive dashboards
 

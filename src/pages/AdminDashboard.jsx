@@ -89,6 +89,22 @@ const AdminDashboard = () => {
   const [showAddRoom, setShowAddRoom] = useState(false);
   const [showAddStaff, setShowAddStaff] = useState(false);
 
+  // ── Pagination ────────────────────────────────────────────────
+  const PER_PAGE = 10;
+  const [pages, setPages] = useState({ bookings: 1, guests: 1, payments: 1, reviews: 1, complaints: 1 });
+  const paginate = (list, tab) => list.slice((pages[tab] - 1) * PER_PAGE, pages[tab] * PER_PAGE);
+  const PageControls = ({ tab, total }) => {
+    const totalPages = Math.ceil(total / PER_PAGE);
+    if (totalPages <= 1) return null;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', borderTop: '1px solid var(--glass-border)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+        <span>Page {pages[tab]} of {totalPages}</span>
+        <button onClick={() => setPages(p => ({...p, [tab]: Math.max(1, p[tab]-1)}))} disabled={pages[tab] === 1} style={{ background: 'none', border: '1px solid var(--glass-border)', borderRadius: '4px', padding: '0.25rem 0.6rem', cursor: 'pointer', color: 'var(--text-muted)' }}>‹</button>
+        <button onClick={() => setPages(p => ({...p, [tab]: Math.min(totalPages, p[tab]+1)}))} disabled={pages[tab] === totalPages} style={{ background: 'none', border: '1px solid var(--glass-border)', borderRadius: '4px', padding: '0.25rem 0.6rem', cursor: 'pointer', color: 'var(--text-muted)' }}>›</button>
+      </div>
+    );
+  };
+
   // Add Room form — includes quantity
   const [roomForm, setRoomForm] = useState({ name: '', description: '', price: '', capacity: 2, quantity: 1, status: 'vacant' });
   const [roomSaving, setRoomSaving] = useState(false);
@@ -156,9 +172,9 @@ const AdminDashboard = () => {
       );
       setRooms(updatedRooms);
 
-      // ── Staff ──
-      const storedStaff = JSON.parse(localStorage.getItem('ta_staff') || '[]');
-      setStaff(storedStaff);
+      // ── Staff (Supabase) ──
+      const { data: staffData } = await supabase.from('staff').select('*').order('name');
+      setStaff(staffData || []);
 
       // ── Guests ──
       const uniqueGuests = [];
@@ -281,28 +297,58 @@ const AdminDashboard = () => {
     fetchDashboardData();
   };
 
-  // ── Complaint status update ───────────────────────────────────
+  // ── Complaint status update + admin reply ──────────────────
   const updateComplaintStatus = async (id, status) => {
     await supabase.from('complaints').update({ status }).eq('id', id);
     fetchDashboardData();
   };
 
-  // ── Staff CRUD ────────────────────────────────────────────────
-  const saveStaff = () => {
-    if (!staffForm.name || !staffForm.role) return;
-    setStaffSaving(true);
-    const updated = [...staff, { id: Date.now(), ...staffForm }];
-    localStorage.setItem('ta_staff', JSON.stringify(updated));
-    setStaff(updated);
-    setShowAddStaff(false);
-    setStaffForm({ name: '', role: '', email: '', phone: '' });
-    setStaffSaving(false);
+  const [replyText,   setReplyText]   = useState('');
+  const [replySaving, setReplySaving] = useState(false);
+
+  const submitAdminReply = async (complaintId) => {
+    if (!replyText.trim()) return;
+    setReplySaving(true);
+    const { error } = await supabase.from('complaints').update({
+      admin_reply:      replyText.trim(),
+      admin_replied_at: new Date().toISOString(),
+      status:           'in_progress',       // auto-advance status
+    }).eq('id', complaintId);
+    setReplySaving(false);
+    if (error) { alert('Could not save reply: ' + error.message); return; }
+    setReplyText('');
+    // Update the open modal locally so the reply appears immediately
+    setSelectedComplaint(prev => prev ? {
+      ...prev,
+      admin_reply: replyText.trim(),
+      admin_replied_at: new Date().toISOString(),
+      status: 'in_progress',
+    } : null);
+    fetchDashboardData();
   };
 
-  const deleteStaff = (id) => {
-    const updated = staff.filter(s => s.id !== id);
-    localStorage.setItem('ta_staff', JSON.stringify(updated));
-    setStaff(updated);
+  // ── Staff CRUD ────────────────────────────────────────────────
+  const saveStaff = async () => {
+    if (!staffForm.name || !staffForm.role) return;
+    setStaffSaving(true);
+    const { error } = await supabase.from('staff').insert([{
+      name:  staffForm.name,
+      role:  staffForm.role,
+      email: staffForm.email,
+      phone: staffForm.phone,
+    }]);
+    setStaffSaving(false);
+    if (error) { alert('Error saving staff: ' + error.message); return; }
+    setShowAddStaff(false);
+    setStaffForm({ name: '', role: '', email: '', phone: '' });
+    fetchDashboardData();
+  };
+
+  const deleteStaff = async (id) => {
+    if (!window.confirm('Remove this staff member?')) return;
+    const { error } = await supabase.from('staff').delete().eq('id', id);
+    if (error) { alert('Error: ' + error.message); return; }
+    fetchDashboardData();
   };
 
   const handleSignOut = async () => { await supabase.auth.signOut(); navigate('/login'); };
@@ -423,7 +469,7 @@ const AdminDashboard = () => {
                   <table className="data-table">
                     <thead><tr><th>Guest</th><th>Room</th><th>Check In</th><th>Check Out</th><th>Amount</th><th>Status</th></tr></thead>
                     <tbody>
-                      {bookings.slice(0, 10).map(b => (
+                      {paginate(bookings, 'bookings').map(b => (
                         <tr key={b.id}>
                           <td><div style={{ fontWeight: 600 }}>{b.guest_name || '—'}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{b.guest_email}</div></td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_name || (b.room_id ? `Room #${b.room_id}` : '—')}</td>
@@ -435,6 +481,7 @@ const AdminDashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                  <PageControls tab="bookings" total={bookings.length} />
                 </div>
               )}
             </div>
@@ -546,9 +593,14 @@ const AdminDashboard = () => {
                           </td>
                           <td>{statusBadge(r.status)}</td>
                           <td>
-                            <button onClick={() => openEditRoom(r)} style={{ background: 'none', border: '1px solid var(--accent-color)', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.65rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}>
-                              <Pencil size={13} /> Modify
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                              <button onClick={() => openEditRoom(r)} style={{ background: 'none', border: '1px solid var(--accent-color)', cursor: 'pointer', color: 'var(--accent-dark)', padding: '0.3rem 0.65rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600 }}>
+                                <Pencil size={13} /> Modify
+                              </button>
+                              <button onClick={() => deleteRoom(r.id)} style={{ background: 'none', border: '1px solid rgba(220,38,38,0.4)', cursor: 'pointer', color: '#f87171', padding: '0.3rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center' }} title="Delete room">
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -595,7 +647,7 @@ const AdminDashboard = () => {
                   <table className="data-table">
                     <thead><tr><th>Name</th><th>Email</th><th>Room No.</th><th>People</th><th>Total Spent</th><th>Last Stay</th></tr></thead>
                     <tbody>
-                      {guests.map(g => (
+                      {paginate(guests, 'guests').map(g => (
                         <tr key={g.id}>
                           <td style={{ fontWeight: 600 }}>{g.name}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{g.email}</td>
@@ -607,6 +659,7 @@ const AdminDashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                  <PageControls tab="guests" total={guests.length} />
                 </div>
               )}
             </div>
@@ -621,21 +674,22 @@ const AdminDashboard = () => {
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Payment Ledger</h3>
               </div>
               <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
-                  <thead><tr><th>Date</th><th>Guest</th><th>Room</th><th>Amount</th><th>Status</th></tr></thead>
-                  <tbody>
-                    {bookings.map(b => (
-                      <tr key={b.id}>
-                        <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{new Date(b.created_at).toLocaleDateString()}</td>
-                        <td style={{ fontWeight: 600 }}>{b.guest_name || '—'}</td>
-                        <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_name || (b.room_id ? `Room #${b.room_id}` : '—')}</td>
-                        <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
-                        <td>{statusBadge(b.status)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {bookings.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No payment records yet.</p>}
+              <table className="data-table">
+              <thead><tr><th>Date</th><th>Guest</th><th>Room</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+              {paginate(bookings, 'payments').map(b => (
+              <tr key={b.id}>
+              <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{new Date(b.created_at).toLocaleDateString()}</td>
+              <td style={{ fontWeight: 600 }}>{b.guest_name || '—'}</td>
+              <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_name || (b.room_id ? `Room #${b.room_id}` : '—')}</td>
+              <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
+              <td>{statusBadge(b.status)}</td>
+              </tr>
+              ))}
+              </tbody>
+              </table>
+              {bookings.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No payment records yet.</p>}
+                  <PageControls tab="payments" total={bookings.length} />
               </div>
             </div>
           </div>
@@ -661,7 +715,7 @@ const AdminDashboard = () => {
                   <table className="data-table">
                     <thead><tr><th>Guest</th><th>Room</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
                     <tbody>
-                      {reviews.map(r => (
+                      {paginate(reviews, 'reviews').map(r => (
                         <tr key={r.id}>
                           <td style={{ fontWeight: 600 }}>{r.guest_name || '—'}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{r.room_id ? `Room #${r.room_id}` : '—'}</td>
@@ -682,6 +736,7 @@ const AdminDashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                  <PageControls tab="reviews" total={reviews.length} />
                 </div>
               )}
             </div>
@@ -708,7 +763,7 @@ const AdminDashboard = () => {
                   <table className="data-table">
                     <thead><tr><th>Guest</th><th>Email</th><th>Subject</th><th>Description</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
                     <tbody>
-                      {complaints.map(c => (
+                      {paginate(complaints, 'complaints').map(c => (
                         <tr key={c.id}>
                           <td style={{ fontWeight: 600 }}>{c.guest_name || '—'}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{c.guest_email || '—'}</td>
@@ -736,6 +791,7 @@ const AdminDashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                  <PageControls tab="complaints" total={complaints.length} />
                 </div>
               )}
             </div>
@@ -864,7 +920,7 @@ const AdminDashboard = () => {
 
       {/* ══ COMPLAINT DETAIL MODAL ══ */}
       {selectedComplaint && (
-        <Modal title="Complaint Details" onClose={() => setSelectedComplaint(null)}>
+        <Modal title="Complaint Details" onClose={() => { setSelectedComplaint(null); setReplyText(''); }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div><label style={lbl}>Guest</label><p style={{ color: 'var(--text-main)', fontWeight: 600, margin: 0 }}>{selectedComplaint.guest_name || '—'}</p></div>
@@ -880,14 +936,59 @@ const AdminDashboard = () => {
               <label style={lbl}>Full Description</label>
               <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '1rem', color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: 1.6, minHeight: '80px', whiteSpace: 'pre-wrap' }}>{selectedComplaint.description || 'No description provided.'}</div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem', marginTop: '0.25rem' }}>
-              <label style={{ ...lbl, marginBottom: 0 }}>Update Status:</label>
-              <select value={selectedComplaint.status} onChange={async e => { const s = e.target.value; await updateComplaintStatus(selectedComplaint.id, s); setSelectedComplaint({ ...selectedComplaint, status: s }); }} style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontFamily: 'var(--font-body)', outline: 'none' }}>
-                <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
-                <option value="resolved">Resolved</option>
-              </select>
-              <button className="btn btn-ghost" onClick={() => setSelectedComplaint(null)}>Close</button>
+
+            {/* Previous admin reply (if any) */}
+            {selectedComplaint.admin_reply && (
+              <div style={{ background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: '8px', padding: '1rem' }}>
+                <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#2563eb', marginBottom: '0.4rem' }}>Your Previous Reply</p>
+                <p style={{ color: '#1e40af', fontSize: '0.9rem', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{selectedComplaint.admin_reply}</p>
+                {selectedComplaint.admin_replied_at && (
+                  <p style={{ fontSize: '0.72rem', color: '#93c5fd', marginTop: '0.4rem', textAlign: 'right' }}>
+                    Sent {new Date(selectedComplaint.admin_replied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Reply box */}
+            <div>
+              <label style={lbl}>{selectedComplaint.admin_reply ? 'Update Reply' : 'Write a Reply'}</label>
+              <textarea
+                style={{ ...fi, resize: 'vertical', minHeight: '90px' }}
+                placeholder="Type your response to the guest… They will see this in their dashboard."
+                value={replyText}
+                onChange={e => setReplyText(e.target.value)}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ ...lbl, marginBottom: 0 }}>Update Status:</label>
+                <select
+                  value={selectedComplaint.status}
+                  onChange={async e => {
+                    const s = e.target.value;
+                    await updateComplaintStatus(selectedComplaint.id, s);
+                    setSelectedComplaint({ ...selectedComplaint, status: s });
+                  }}
+                  style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', border: '1.5px solid rgba(0,0,0,0.12)', borderRadius: '6px', fontFamily: 'var(--font-body)', outline: 'none' }}
+                >
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '0.6rem' }}>
+                <button className="btn btn-ghost" onClick={() => { setSelectedComplaint(null); setReplyText(''); }}>Close</button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => submitAdminReply(selectedComplaint.id)}
+                  disabled={replySaving || !replyText.trim()}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <Save size={14} />{replySaving ? 'Sending…' : 'Send Reply'}
+                </button>
+              </div>
             </div>
           </div>
         </Modal>
