@@ -9,7 +9,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\eslint.config.js",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_eslint_config_js",
-      "community": 12,
+      "community": 11,
       "norm_label": "eslint.config.js"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\seedRooms.js",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_seedrooms_js",
-      "community": 6,
+      "community": 0,
       "norm_label": "seedrooms.js"
     },
     {
@@ -27,7 +27,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\seedRooms.js",
       "source_location": "L15",
       "id": "seedrooms_seed",
-      "community": 6,
+      "community": 0,
       "norm_label": "seed()"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\testSupabase.js",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_testsupabase_js",
-      "community": 7,
+      "community": 0,
       "norm_label": "testsupabase.js"
     },
     {
@@ -45,7 +45,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\testSupabase.js",
       "source_location": "L10",
       "id": "testsupabase_testconnection",
-      "community": 7,
+      "community": 0,
       "norm_label": "testconnection()"
     },
     {
@@ -54,8 +54,44 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\vite.config.js",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_vite_config_js",
-      "community": 13,
+      "community": 12,
       "norm_label": "vite.config.js"
+    },
+    {
+      "label": "health-check.js",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L1",
+      "id": "d_antigravity_topavenue_scripts_health_check_js",
+      "community": 0,
+      "norm_label": "health-check.js"
+    },
+    {
+      "label": "log()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L23",
+      "id": "health_check_log",
+      "community": 0,
+      "norm_label": "log()"
+    },
+    {
+      "label": "checkFile()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L27",
+      "id": "health_check_checkfile",
+      "community": 0,
+      "norm_label": "checkfile()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L37",
+      "id": "health_check_run",
+      "community": 0,
+      "norm_label": "run()"
     },
     {
       "label": "App.jsx",
@@ -63,43 +99,43 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_app_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "app.jsx"
     },
     {
       "label": "AuthGuard()",
       "file_type": "code",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "id": "app_authguard",
-      "community": 1,
+      "community": 2,
       "norm_label": "authguard()"
     },
     {
       "label": "SignupGuard()",
       "file_type": "code",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L53",
+      "source_location": "L54",
       "id": "app_signupguard",
-      "community": 1,
+      "community": 2,
       "norm_label": "signupguard()"
     },
     {
       "label": "ComingSoon()",
       "file_type": "code",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L74",
+      "source_location": "L75",
       "id": "app_comingsoon",
-      "community": 1,
+      "community": 2,
       "norm_label": "comingsoon()"
     },
     {
       "label": "App()",
       "file_type": "code",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L83",
+      "source_location": "L84",
       "id": "app_app",
-      "community": 1,
+      "community": 2,
       "norm_label": "app()"
     },
     {
@@ -108,7 +144,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\main.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_main_jsx",
-      "community": 14,
+      "community": 13,
       "norm_label": "main.jsx"
     },
     {
@@ -117,7 +153,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\supabaseClient.js",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_supabaseclient_js",
-      "community": 15,
+      "community": 14,
       "norm_label": "supabaseclient.js"
     },
     {
@@ -126,7 +162,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\components\\Navbar.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_components_navbar_jsx",
-      "community": 8,
+      "community": 7,
       "norm_label": "navbar.jsx"
     },
     {
@@ -135,7 +171,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\components\\Navbar.jsx",
       "source_location": "L7",
       "id": "navbar_navbar",
-      "community": 8,
+      "community": 7,
       "norm_label": "navbar()"
     },
     {
@@ -144,7 +180,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_admindashboard_jsx",
-      "community": 2,
+      "community": 3,
       "norm_label": "admindashboard.jsx"
     },
     {
@@ -153,7 +189,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L25",
       "id": "admindashboard_statcard",
-      "community": 2,
+      "community": 3,
       "norm_label": "statcard()"
     },
     {
@@ -162,7 +198,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L39",
       "id": "admindashboard_modal",
-      "community": 2,
+      "community": 3,
       "norm_label": "modal()"
     },
     {
@@ -171,7 +207,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L52",
       "id": "admindashboard_sidebaritem",
-      "community": 2,
+      "community": 3,
       "norm_label": "sidebaritem()"
     },
     {
@@ -180,7 +216,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\AdminDashboard.jsx",
       "source_location": "L68",
       "id": "admindashboard_admindashboard",
-      "community": 2,
+      "community": 3,
       "norm_label": "admindashboard()"
     },
     {
@@ -189,7 +225,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\BookingFlow.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_bookingflow_jsx",
-      "community": 5,
+      "community": 6,
       "norm_label": "bookingflow.jsx"
     },
     {
@@ -198,7 +234,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\BookingFlow.jsx",
       "source_location": "L19",
       "id": "bookingflow_computenights",
-      "community": 5,
+      "community": 6,
       "norm_label": "computenights()"
     },
     {
@@ -207,7 +243,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\BookingFlow.jsx",
       "source_location": "L25",
       "id": "bookingflow_bookingflow",
-      "community": 5,
+      "community": 6,
       "norm_label": "bookingflow()"
     },
     {
@@ -216,7 +252,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_customerdashboard_jsx",
-      "community": 0,
+      "community": 1,
       "norm_label": "customerdashboard.jsx"
     },
     {
@@ -225,7 +261,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L25",
       "id": "customerdashboard_navitem",
-      "community": 0,
+      "community": 1,
       "norm_label": "navitem()"
     },
     {
@@ -234,7 +270,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L41",
       "id": "customerdashboard_starpicker",
-      "community": 0,
+      "community": 1,
       "norm_label": "starpicker()"
     },
     {
@@ -243,7 +279,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L52",
       "id": "customerdashboard_reviewmodal",
-      "community": 0,
+      "community": 1,
       "norm_label": "reviewmodal()"
     },
     {
@@ -252,7 +288,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L101",
       "id": "customerdashboard_complaintmodal",
-      "community": 0,
+      "community": 1,
       "norm_label": "complaintmodal()"
     },
     {
@@ -261,7 +297,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\CustomerDashboard.jsx",
       "source_location": "L178",
       "id": "customerdashboard_customerdashboard",
-      "community": 0,
+      "community": 1,
       "norm_label": "customerdashboard()"
     },
     {
@@ -270,7 +306,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Home.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_home_jsx",
-      "community": 9,
+      "community": 8,
       "norm_label": "home.jsx"
     },
     {
@@ -279,7 +315,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Home.jsx",
       "source_location": "L6",
       "id": "home_home",
-      "community": 9,
+      "community": 8,
       "norm_label": "home()"
     },
     {
@@ -288,7 +324,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Login.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_login_jsx",
-      "community": 3,
+      "community": 4,
       "norm_label": "login.jsx"
     },
     {
@@ -297,7 +333,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Login.jsx",
       "source_location": "L14",
       "id": "login_label",
-      "community": 3,
+      "community": 4,
       "norm_label": "label()"
     },
     {
@@ -306,7 +342,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Login.jsx",
       "source_location": "L20",
       "id": "login_errorbox",
-      "community": 3,
+      "community": 4,
       "norm_label": "errorbox()"
     },
     {
@@ -315,7 +351,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Login.jsx",
       "source_location": "L26",
       "id": "login_login",
-      "community": 3,
+      "community": 4,
       "norm_label": "login()"
     },
     {
@@ -324,7 +360,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Signup.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_signup_jsx",
-      "community": 10,
+      "community": 9,
       "norm_label": "signup.jsx"
     },
     {
@@ -333,7 +369,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\Signup.jsx",
       "source_location": "L16",
       "id": "signup_signup",
-      "community": 10,
+      "community": 9,
       "norm_label": "signup()"
     },
     {
@@ -342,7 +378,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\WhyBookDirect.jsx",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_src_pages_whybookdirect_jsx",
-      "community": 11,
+      "community": 10,
       "norm_label": "whybookdirect.jsx"
     },
     {
@@ -351,7 +387,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\pages\\WhyBookDirect.jsx",
       "source_location": "L5",
       "id": "whybookdirect_whybookdirect",
-      "community": 11,
+      "community": 10,
       "norm_label": "whybookdirect()"
     },
     {
@@ -360,7 +396,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\supabase\\functions\\create-payment-intent\\index.ts",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_supabase_functions_create_payment_intent_index_ts",
-      "community": 16,
+      "community": 15,
       "norm_label": "index.ts"
     },
     {
@@ -369,7 +405,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\supabase\\functions\\send-email\\index.ts",
       "source_location": "L1",
       "id": "d_antigravity_topavenue_supabase_functions_send_email_index_ts",
-      "community": 4,
+      "community": 5,
       "norm_label": "index.ts"
     },
     {
@@ -378,7 +414,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\supabase\\functions\\send-email\\index.ts",
       "source_location": "L46",
       "id": "index_bookingconfirmation",
-      "community": 4,
+      "community": 5,
       "norm_label": "bookingconfirmation()"
     },
     {
@@ -387,7 +423,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\supabase\\functions\\send-email\\index.ts",
       "source_location": "L104",
       "id": "index_complaintacknowledgement",
-      "community": 4,
+      "community": 5,
       "norm_label": "complaintacknowledgement()"
     },
     {
@@ -396,7 +432,7 @@
       "source_file": "D:\\Antigravity\\TopAvenue\\supabase\\functions\\send-email\\index.ts",
       "source_location": "L133",
       "id": "index_complaintreply",
-      "community": 4,
+      "community": 5,
       "norm_label": "complaintreply()"
     }
   ],
@@ -414,6 +450,18 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "D:\\Antigravity\\TopAvenue\\seedRooms.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_src": "seedrooms_seed",
+      "_tgt": "health_check_log",
+      "source": "seedrooms_seed",
+      "target": "health_check_log"
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "D:\\Antigravity\\TopAvenue\\testSupabase.js",
@@ -426,10 +474,94 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "D:\\Antigravity\\TopAvenue\\testSupabase.js",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "testsupabase_testconnection",
+      "_tgt": "health_check_log",
+      "source": "testsupabase_testconnection",
+      "target": "health_check_log"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_scripts_health_check_js",
+      "_tgt": "health_check_log",
+      "source": "d_antigravity_topavenue_scripts_health_check_js",
+      "target": "health_check_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_scripts_health_check_js",
+      "_tgt": "health_check_checkfile",
+      "source": "d_antigravity_topavenue_scripts_health_check_js",
+      "target": "health_check_checkfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_src": "d_antigravity_topavenue_scripts_health_check_js",
+      "_tgt": "health_check_run",
+      "source": "d_antigravity_topavenue_scripts_health_check_js",
+      "target": "health_check_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "health_check_checkfile",
+      "_tgt": "health_check_log",
+      "source": "health_check_log",
+      "target": "health_check_checkfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_src": "health_check_run",
+      "_tgt": "health_check_log",
+      "source": "health_check_log",
+      "target": "health_check_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Antigravity\\TopAvenue\\scripts\\health-check.js",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_src": "health_check_run",
+      "_tgt": "health_check_checkfile",
+      "source": "health_check_checkfile",
+      "target": "health_check_run",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "_src": "d_antigravity_topavenue_src_app_jsx",
       "_tgt": "app_authguard",
@@ -441,7 +573,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0,
       "_src": "d_antigravity_topavenue_src_app_jsx",
       "_tgt": "app_signupguard",
@@ -453,7 +585,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L74",
+      "source_location": "L75",
       "weight": 1.0,
       "_src": "d_antigravity_topavenue_src_app_jsx",
       "_tgt": "app_comingsoon",
@@ -465,7 +597,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "D:\\Antigravity\\TopAvenue\\src\\App.jsx",
-      "source_location": "L83",
+      "source_location": "L84",
       "weight": 1.0,
       "_src": "d_antigravity_topavenue_src_app_jsx",
       "_tgt": "app_app",
