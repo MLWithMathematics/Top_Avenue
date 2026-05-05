@@ -2,6 +2,9 @@
    HOME PAGE – LIGHT HOTEL THEME
    ========================================= */
 
+/* Spinner for async loaders */
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* Hero */
 .hero {
   position: relative;

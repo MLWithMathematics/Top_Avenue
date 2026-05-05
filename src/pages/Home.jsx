@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Users, Star, ArrowRight, Wifi, Coffee, Car, Shield, Phone, MapPin } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 import './Home.css';
 
 const Home = () => {
@@ -22,11 +23,28 @@ const Home = () => {
     });
   };
 
-  const rooms = [
-    { id: 1, name: 'Deluxe King Suite', desc: 'Spacious 55 sqm suite with panoramic city views, a king bed, and a private lounge area.', price: 299, tag: 'Most Popular' },
-    { id: 2, name: 'Ocean View Suite', desc: 'Wake up to stunning sea vistas from your private balcony with premium bedding and spa bath.', price: 499, tag: 'Best Value' },
-    { id: 3, name: 'Presidential Suite', desc: 'The pinnacle of luxury — a 120 sqm penthouse suite with butler service and a rooftop terrace.', price: 899, tag: 'Exclusive' },
-  ];
+  // ── Live rooms from Supabase (top 3, vacant-first) ─────────
+  const [rooms, setRooms]           = useState([]);
+  const [roomsLoading, setRoomsLoading] = useState(true);
+
+  // Tags assigned by display position, not hardcoded per room
+  const ROOM_TAGS = ['Most Popular', 'Best Value', 'Exclusive'];
+
+  useEffect(() => {
+    const fetchFeaturedRooms = async () => {
+      setRoomsLoading(true);
+      // Prefer vacant rooms first, then order by price ascending, limit 3
+      const { data, error } = await supabase
+        .from('rooms')
+        .select('id, name, description, price, status, image_url, capacity')
+        .order('status',  { ascending: true })   // 'vacant' sorts before 'occupied' alphabetically
+        .order('price',   { ascending: true })
+        .limit(3);
+      if (!error && data) setRooms(data);
+      setRoomsLoading(false);
+    };
+    fetchFeaturedRooms();
+  }, []);
 
   const perks = [
     { icon: Wifi, title: 'Complimentary Wi-Fi', desc: 'Ultra-fast gigabit Wi-Fi throughout the property, always free.' },
@@ -117,27 +135,45 @@ const Home = () => {
           <p style={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '3px', color: 'var(--accent-color)', marginBottom: '0.75rem' }}>Accommodations</p>
           <h2 className="section-title">Signature <span>Suites</span></h2>
           <div className="gold-divider"></div>
+          {roomsLoading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+              <div style={{ width: 36, height: 36, border: '3px solid var(--glass-border)', borderTopColor: 'var(--accent-color)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
+              <p style={{ fontSize: '0.88rem' }}>Loading rooms…</p>
+            </div>
+          ) : rooms.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>No rooms available right now. Please check back soon.</p>
+          ) : (
           <div className="room-grid" style={{ marginTop: '3rem' }}>
-            {rooms.map((room) => (
+            {rooms.map((room, idx) => (
               <div key={room.id} className="room-card glass-panel">
-              <div className="room-img-placeholder" style={room.image ? { background: `url('${room.image}') center/cover no-repeat`, minHeight: '220px' } : {}}>
-              {!room.image && (
+              <div className="room-img-placeholder" style={room.image_url ? { background: `url('${room.image_url}') center/cover no-repeat`, minHeight: '220px' } : {}}>
+              {!room.image_url && (
                 <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', color: 'var(--text-muted)', zIndex: 1 }}>{room.name}</span>
               )}
-              {room.tag && (
-                  <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--accent-color)', color: '#1a1a2e', fontSize: '0.7rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', zIndex: 2 }}>{room.tag}</span>
-                  )}
+              {/* Status badge */}
+              {room.status !== 'vacant' && (
+                <span style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#6b7280', color: '#fff', fontSize: '0.65rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', zIndex: 2 }}>Occupied</span>
+              )}
+              {/* Positional tag (Most Popular / Best Value / Exclusive) */}
+              <span style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--accent-color)', color: '#1a1a2e', fontSize: '0.7rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', zIndex: 2 }}>{ROOM_TAGS[idx]}</span>
                 </div>
                 <div className="room-info">
                   <h3>{room.name}</h3>
-                  <p>{room.desc}</p>
+                  <p>{room.description || 'A beautifully appointed room crafted for your comfort and relaxation.'}</p>
                   <div className="room-footer">
                     <span className="price">From ${room.price}<span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>/night</span></span>
-                    <Link to="/book" state={{ checkIn: barCheckIn, checkOut: barCheckOut, guests: barGuests }} className="btn btn-ghost" style={{ padding: '0.5rem 0', gap: '0.4rem', fontSize: '0.82rem' }}>Book Now <ArrowRight size={14}/></Link>
+                    {room.status === 'vacant'
+                      ? <Link to="/book" state={{ checkIn: barCheckIn, checkOut: barCheckOut, guests: barGuests }} className="btn btn-ghost" style={{ padding: '0.5rem 0', gap: '0.4rem', fontSize: '0.82rem' }}>Book Now <ArrowRight size={14}/></Link>
+                      : <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Not available</span>
+                    }
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+          )}
+          <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+            <Link to="/rooms" className="btn btn-outline" style={{ padding: '0.75rem 2.5rem', fontSize: '0.85rem' }}>View All Rooms &amp; Suites <ArrowRight size={14} style={{ marginLeft: '0.4rem' }} /></Link>
           </div>
         </div>
       </section>

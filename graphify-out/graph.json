@@ -286,7 +286,7 @@
       "label": "Home()",
       "file_type": "code",
       "source_file": "src/pages/Home.jsx",
-      "source_location": "L6",
+      "source_location": "L7",
       "id": "pages_home_home",
       "community": 10,
       "norm_label": "home()"
@@ -319,10 +319,19 @@
       "norm_label": "errorbox()"
     },
     {
-      "label": "Login()",
+      "label": "SuccessBox()",
       "file_type": "code",
       "source_file": "src/pages/Login.jsx",
       "source_location": "L26",
+      "id": "pages_login_successbox",
+      "community": 3,
+      "norm_label": "successbox()"
+    },
+    {
+      "label": "Login()",
+      "file_type": "code",
+      "source_file": "src/pages/Login.jsx",
+      "source_location": "L33",
       "id": "pages_login_login",
       "community": 3,
       "norm_label": "login()"
@@ -674,6 +683,16 @@
       "source_file": "src/pages/Login.jsx",
       "source_location": "L26",
       "weight": 1.0,
+      "source": "src_pages_login_jsx",
+      "target": "pages_login_successbox",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/Login.jsx",
+      "source_location": "L26",
+      "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_pages_login_jsx",
       "target": "pages_login_login"
@@ -750,5 +769,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "87a2a3657dbfe64ea978aa8622b1c25f10d3d8ba"
+  "built_at_commit": "11eda4dacd51e0a6b2badf76d13e9f0080000d04"
 }
