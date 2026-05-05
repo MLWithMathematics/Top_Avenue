@@ -353,6 +353,12 @@ input, select, textarea {
 }
 
 /* CTA section: explicit white text on dark gradient */
+.cta-section {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5e 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
 .cta-section,
 .cta-section h2,
 .cta-section p {

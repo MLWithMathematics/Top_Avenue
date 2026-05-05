@@ -54,11 +54,12 @@ const WhyBookDirect = () => {
 
       {/* CTA Section */}
       <section className="section-padding container text-center" style={{ marginBottom: '4rem' }}>
-        <div className="glass-panel" style={{ padding: '4rem 2rem', background: 'linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9))' }}>
-          <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)' }}>Ready to experience luxury?</h2>
+        <div className="glass-panel cta-section" style={{ padding: '4rem 2rem' }}>
+          <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)', color: '#fff' }}>Ready to experience luxury?</h2>
+          <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '2rem' }}>Book direct for the best rates and exclusive perks.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
             <Link to="/book" className="btn btn-primary" style={{ padding: '1rem 3rem', fontSize: '1.1rem' }}>Book Now</Link>
-            <Link to="/signup" className="btn btn-outline" style={{ padding: '1rem 3rem', fontSize: '1.1rem' }}>Create Account</Link>
+            <Link to="/signup" className="btn" style={{ padding: '1rem 3rem', background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', fontSize: '1.1rem', borderRadius: 'var(--radius-sm)' }}>Create Account</Link>
           </div>
         </div>
       </section>

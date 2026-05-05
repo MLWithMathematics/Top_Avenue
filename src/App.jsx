@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import WhyBookDirect from './pages/WhyBookDirect';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import CustomerDashboard from './pages/CustomerDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import BookingFlow from './pages/BookingFlow';
-import ResetPassword from './pages/ResetPassword';
-import { supabase } from './supabaseClient';
+import Navbar from './components/Navbar.jsx';
+import Home from './pages/Home.jsx';
+import WhyBookDirect from './pages/WhyBookDirect.jsx';
+import Login from './pages/Login.jsx';
+import Signup from './pages/Signup.jsx';
+import CustomerDashboard from './pages/CustomerDashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import BookingFlow from './pages/BookingFlow.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
+import Rooms from './pages/Rooms.jsx';
+import Dining from './pages/Dining.jsx';
+import Contact from './pages/Contact.jsx';
+import { supabase } from './supabaseClient.js';
 
 // ── Generic route-level auth guard ─────────────────────────────
 // requireRole: 'admin' | 'customer' | 'any'
@@ -94,9 +97,9 @@ function App() {
         <Route path="/dashboard"        element={<AuthGuard requireRole="customer"><CustomerDashboard /></AuthGuard>} />
         <Route path="/admin"            element={<AuthGuard requireRole="admin"><AdminDashboard /></AuthGuard>} />
         <Route path="/book"             element={<AuthGuard requireRole="any"><BookingFlow /></AuthGuard>} />
-        <Route path="/rooms"            element={<ComingSoon title="Rooms & Suites" />} />
-        <Route path="/dining"           element={<ComingSoon title="Dining" />} />
-        <Route path="/contact"          element={<ComingSoon title="Contact Us" />} />
+        <Route path="/rooms"            element={<Rooms />} />
+        <Route path="/dining"           element={<Dining />} />
+        <Route path="/contact"          element={<Contact />} />
         <Route path="*"                 element={<Navigate to="/" replace />} />
       </Routes>
     </>

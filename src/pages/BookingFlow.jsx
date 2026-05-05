@@ -22,6 +22,10 @@ const computeNights = (checkIn, checkOut) => {
   return Math.max(0, Math.round(diff / 86400000));
 };
 
+/**
+ * @see supabase/functions/create-payment-intent/index.ts
+ * @see supabase/functions/send-email/index.ts
+ */
 const BookingFlow = () => {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
