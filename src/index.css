@@ -107,6 +107,12 @@ ul {
   padding: 0 2rem;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1.25rem;
+  }
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -284,11 +290,24 @@ input, select, textarea {
   padding: 6rem 0;
 }
 
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 4rem 0;
+  }
+}
+
 .section-title {
   text-align: center;
   font-size: 2.8rem;
   margin-bottom: 3rem;
   color: var(--text-main);
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
 }
 
 .section-title span {
@@ -379,4 +398,124 @@ input, select, textarea {
 .dashboard-main h3,
 .dashboard-main p {
   color: var(--text-main);
+}
+
+/* Responsive Table Wrapper */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+}
+
+@media (max-width: 640px) {
+  .data-table thead {
+    display: none; /* Hide headers on very small screens or use cards */
+  }
+  
+  .data-table, .data-table tbody, .data-table tr, .data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .data-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+  }
+
+  .data-table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .data-table td:last-child {
+    border-bottom: none;
+  }
+
+  .data-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+}
+
+/* Dashboard Sidebar Responsiveness */
+@media (max-width: 1024px) {
+  .dashboard-sidebar {
+    position: fixed !important;
+    left: -240px;
+    top: var(--nav-height) !important;
+    height: calc(100vh - var(--nav-height)) !important;
+    transition: left 0.3s ease;
+    z-index: 2950;
+  }
+
+  .dashboard-sidebar.open {
+    left: 0;
+  }
+
+  .mobile-sidebar-toggle {
+    display: flex !important;
+  }
+
+  main {
+    padding: 1.5rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: 1rem !important;
+  }
+}
+
+/* Booking Flow Responsiveness */
+@media (max-width: 768px) {
+  .booking-progress {
+    margin-bottom: 2rem !important;
+  }
+  .step-label {
+    display: none; /* Hide labels on mobile to avoid overlap */
+  }
+  .booking-card {
+    padding: 1.5rem !important;
+  }
+  .room-selection-card {
+    flex-direction: column;
+  }
+  .room-selection-img {
+    width: 100% !important;
+    height: 180px;
+  }
+  .room-selection-info {
+    flex-direction: column;
+    align-items: flex-start !important;
+    text-align: left;
+  }
+  .room-selection-info > div:last-child {
+    margin-left: 0 !important;
+    margin-top: 1rem;
+    width: 100%;
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .responsive-hero-title {
+    font-size: 2.2rem !important;
+  }
 }

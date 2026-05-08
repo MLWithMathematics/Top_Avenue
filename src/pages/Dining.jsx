@@ -189,7 +189,7 @@ const Dining = () => {
             border: '1px solid rgba(201,168,76,0.4)', padding: '0.4rem 1.2rem', borderRadius: 20,
             marginBottom: '1.5rem',
           }}>Culinary Experiences</span>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '3.5rem', color: '#fff', marginBottom: '1rem' }}>
+          <h1 className="responsive-hero-title" style={{ fontFamily: 'var(--font-heading)', fontSize: '3.5rem', color: '#fff', marginBottom: '1rem' }}>
             Dining at <span style={{ color: 'var(--accent-color)' }}>TopAvenue</span>
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: 560, margin: '0 auto', fontSize: '1rem', lineHeight: 1.7 }}>

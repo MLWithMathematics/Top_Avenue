@@ -196,7 +196,7 @@ const Rooms = () => {
             border: '1px solid rgba(201,168,76,0.4)', padding: '0.4rem 1.2rem', borderRadius: 20,
             marginBottom: '1.5rem',
           }}>Accommodations</span>
-          <h1 style={{
+          <h1 className="responsive-hero-title" style={{
             fontFamily: 'var(--font-heading)', fontSize: '3.5rem',
             color: '#fff', marginBottom: '1rem',
           }}>
@@ -261,7 +261,7 @@ const Rooms = () => {
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
               gap: '2rem',
             }}>
               {displayed.map((room, i) => (

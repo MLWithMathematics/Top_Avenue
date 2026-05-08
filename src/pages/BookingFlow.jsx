@@ -227,10 +227,10 @@ const BookingFlow = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-subtle)', paddingTop: 'var(--nav-height)' }}>
-      <div className="container" style={{ padding: '3rem 1rem', maxWidth: '860px' }}>
+      <div className="container" style={{ padding: '2rem 1rem', maxWidth: '860px' }}>
 
         {/* Progress bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3rem', position: 'relative' }}>
+        <div className="booking-progress" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3rem', position: 'relative' }}>
           <div style={{ position: 'absolute', top: '20px', left: 0, right: 0, height: '2px', background: 'var(--glass-border)', zIndex: 0 }} />
           {stepMeta.map(s => (
             <div key={s.num} style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
@@ -244,12 +244,12 @@ const BookingFlow = () => {
               }}>
                 <s.icon size={18} />
               </div>
-              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: step >= s.num ? 'var(--accent-dark)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</span>
+              <span className="step-label" style={{ fontSize: '0.78rem', fontWeight: 600, color: step >= s.num ? 'var(--accent-dark)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</span>
             </div>
           ))}
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '2.5rem', boxShadow: '0 4px 30px rgba(0,0,0,0.08)', border: '1px solid var(--glass-border)' }}>
+        <div className="booking-card" style={{ background: '#fff', borderRadius: '16px', padding: '2rem', boxShadow: '0 4px 30px rgba(0,0,0,0.08)', border: '1px solid var(--glass-border)' }}>
 
           {/* ── STEP 1: DATES ── */}
           {step === 1 && (
@@ -259,7 +259,7 @@ const BookingFlow = () => {
               {dateError && (
                 <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1.5rem', color: '#dc2626', fontSize: '0.88rem' }}>{dateError}</div>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div className="booking-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 <div>
                   <label style={labelStyle}>Check In</label>
                   <input type="date" style={inputStyle} min={new Date().toISOString().split('T')[0]} value={bookingDetails.checkIn}
@@ -283,7 +283,7 @@ const BookingFlow = () => {
                 </select>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <button className="btn btn-primary" onClick={handleFindRooms} disabled={!bookingDetails.checkIn || !bookingDetails.checkOut} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button className="btn btn-primary" onClick={handleFindRooms} disabled={!bookingDetails.checkIn || !bookingDetails.checkOut} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', width: '100%', maxWidth: '300px' }}>
                   Find Available Rooms <ChevronRight size={16} />
                 </button>
               </div>
@@ -306,15 +306,16 @@ const BookingFlow = () => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '2rem' }}>
                   {rooms.filter(r => r.capacity >= bookingDetails.guests).map(room => (
-                    <div key={room.id} style={{ display: 'flex', border: '1.5px solid var(--glass-border)', borderRadius: '10px', overflow: 'hidden', transition: 'border-color 0.2s', cursor: 'pointer' }}
+                    <div key={room.id} className="room-selection-card" style={{ display: 'flex', border: '1.5px solid var(--glass-border)', borderRadius: '10px', overflow: 'hidden', transition: 'border-color 0.2s', cursor: 'pointer' }}
+                      onClick={() => selectRoom(room)}
                       onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-color)'}
                       onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
                     >
                       {/* Room image or placeholder */}
-                      <div style={{ width: '170px', minHeight: '140px', flexShrink: 0, background: room.image_url ? `url('${room.image_url}') center/cover no-repeat` : 'linear-gradient(135deg,#e8e8f0,#d0d0e0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {!room.image_url && <Image size={30} color="rgba(0,0,0,0.15)" />}
+                      <div className="room-selection-img" style={{ width: '170px', minHeight: '140px', flexShrink: 0, background: room.image_url ? `url('${room.image_url}') center/cover no-repeat` : 'linear-gradient(135deg,#e8e8f0,#d0d0e0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {!room.image_url && <BedDouble size={30} color="rgba(0,0,0,0.15)" />}
                       </div>
-                      <div style={{ flex: 1, padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="room-selection-info" style={{ flex: 1, padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.3rem' }}>{room.name}</h3>
                           <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', marginBottom: '0.3rem' }}>{room.description}</p>
@@ -325,7 +326,7 @@ const BookingFlow = () => {
                             ${room.price}<span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400 }}>/night</span>
                           </p>
                           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>${room.price * nights} total</p>
-                          <button className="btn btn-primary" onClick={() => selectRoom(room)} style={{ fontSize: '0.82rem', padding: '0.55rem 1.1rem' }}>Select</button>
+                          <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); selectRoom(room); }} style={{ fontSize: '0.82rem', padding: '0.55rem 1.1rem' }}>Select</button>
                         </div>
                       </div>
                     </div>
@@ -363,9 +364,9 @@ const BookingFlow = () => {
                   );
                 })}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <button className="btn btn-ghost" onClick={prevStep}>← Back</button>
-                <button className="btn btn-primary" onClick={nextStep}>Continue to Payment →</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                <button className="btn btn-ghost" onClick={prevStep} style={{ flex: 1 }}>← Back</button>
+                <button className="btn btn-primary" onClick={nextStep} style={{ flex: 2 }}>Continue to Payment →</button>
               </div>
             </div>
           )}
@@ -400,7 +401,7 @@ const BookingFlow = () => {
               </div>
 
               {/* Guest info */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div className="booking-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 <div>
                   <label style={labelStyle}>Full Name</label>
                   <input type="text" style={inputStyle} value={bookingDetails.guestName} onChange={e => setBookingDetails({...bookingDetails, guestName: e.target.value})} placeholder="As on your ID" />
@@ -429,7 +430,7 @@ const BookingFlow = () => {
                       className="btn btn-primary"
                       onClick={createPaymentIntent}
                       disabled={stripeLoading || !bookingDetails.guestName || !bookingDetails.guestEmail}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', width: '100%', maxWidth: '350px' }}
                     >
                       <CreditCard size={15} />
                       {stripeLoading ? 'Connecting to Stripe…' : `Pay $${totalCost} with Card`}
@@ -437,31 +438,29 @@ const BookingFlow = () => {
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>🔒 256-bit SSL encryption</p>
                   </div>
                 ) : (
-                  // PaymentIntent ready — mount Stripe's PaymentElement here
                   <div>
                     <div
                       id="stripe-payment-element"
                       style={{ border: '1.5px solid var(--accent-color)', borderRadius: '8px', padding: '1.5rem', background: '#fafaf8', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', textAlign: 'center', lineHeight: 1.7 }}>
-                        Stripe <code style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.06)', padding: '0.15rem 0.4rem', borderRadius: '3px' }}>PaymentElement</code> mounts here.<br />
-                        Pass <code style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.06)', padding: '0.15rem 0.4rem', borderRadius: '3px' }}>clientSecret</code> to{' '}
-                        <code style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.06)', padding: '0.15rem 0.4rem', borderRadius: '3px' }}>Elements</code> provider.
+                        Stripe <code style={{ fontSize: '0.78rem', background: 'rgba(0,0,0,0.06)', padding: '0.15rem 0.4rem', borderRadius: '3px' }}>PaymentElement</code> mounts here.
                       </p>
                     </div>
                     <p style={{ fontSize: '0.78rem', color: '#059669', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <CheckCircle size={13} /> PaymentIntent ready — clientSecret received
+                      <CheckCircle size={13} /> PaymentIntent ready
                     </p>
                   </div>
                 )}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <button className="btn btn-ghost" onClick={prevStep}>← Back</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                <button className="btn btn-ghost" onClick={prevStep} style={{ flex: 1 }}>← Back</button>
                 <button
                   className="btn btn-primary"
                   onClick={handleComplete}
                   disabled={!bookingDetails.guestName || !bookingDetails.guestEmail}
+                  style={{ flex: 2 }}
                 >
                   Confirm Booking — ${totalCost}
                 </button>

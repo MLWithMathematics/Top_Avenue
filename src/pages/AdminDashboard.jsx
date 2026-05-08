@@ -76,6 +76,7 @@ const AdminDashboard = () => {
   const [guests, setGuests] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [complaints, setComplaints] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // ── Modal states ──────────────────────────────────────────────
   const [selectedComplaint, setSelectedComplaint] = useState(null);
@@ -391,20 +392,46 @@ const AdminDashboard = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-subtle)', paddingTop: 'var(--nav-height)' }}>
 
+      {/* ── Mobile Sidebar Toggle ────────────────────────── */}
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        style={{
+          position: 'fixed', bottom: '1.5rem', right: '1.5rem',
+          width: '56px', height: '56px', borderRadius: '50%',
+          background: 'var(--primary-color)', color: '#fff',
+          display: 'none', alignItems: 'center', justifyContent: 'center',
+          boxShadow: 'var(--shadow-lg)', zIndex: 3000, border: 'none', cursor: 'pointer'
+        }}
+        className="mobile-sidebar-toggle"
+      >
+        {isSidebarOpen ? <X size={24} /> : <LayoutDashboard size={24} />}
+      </button>
+
+      {/* ── Sidebar Overlay ────────────────────────── */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2900 }}
+        />
+      )}
+
       {/* ── Sidebar ─────────────────────────────────────────── */}
-      <aside style={{ width: '240px', background: '#ffffff', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))' }}>
+      <aside 
+        className={`dashboard-sidebar ${isSidebarOpen ? 'open' : ''}`}
+        style={{ width: '240px', background: '#ffffff', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))', zIndex: 2950 }}
+      >
         <div style={{ padding: '1.5rem 1rem 1rem', borderBottom: '1px solid var(--glass-border)' }}>
           <p style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', color: 'var(--text-main)', margin: 0 }}>TOP<span style={{ color: 'var(--accent-color)' }}>AVENUE</span></p>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.2rem 0 0', textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Console</p>
         </div>
         <nav style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
-          <SidebarItem icon={LayoutDashboard}       label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={setActiveTab} />
-          <SidebarItem icon={BedDouble}             label="Rooms"       id="rooms"       active={activeTab==='rooms'}       onClick={setActiveTab} />
-          <SidebarItem icon={Users}                 label="Guests"      id="guests"      active={activeTab==='guests'}      onClick={setActiveTab} />
-          <SidebarItem icon={CreditCard}            label="Payments"    id="payments"    active={activeTab==='payments'}    onClick={setActiveTab} />
-          <SidebarItem icon={Star}                  label="Reviews"     id="reviews"     active={activeTab==='reviews'}     onClick={setActiveTab} />
-          <SidebarItem icon={MessageSquareWarning}  label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={setActiveTab} />
-          <SidebarItem icon={UserCog}               label="Staff"       id="staff"       active={activeTab==='staff'}       onClick={setActiveTab} />
+          <SidebarItem icon={LayoutDashboard}       label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={BedDouble}             label="Rooms"       id="rooms"       active={activeTab==='rooms'}       onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={Users}                 label="Guests"      id="guests"      active={activeTab==='guests'}      onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={CreditCard}            label="Payments"    id="payments"    active={activeTab==='payments'}    onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={Star}                  label="Reviews"     id="reviews"     active={activeTab==='reviews'}     onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={MessageSquareWarning}  label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={UserCog}               label="Staff"       id="staff"       active={activeTab==='staff'}       onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
         </nav>
         <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)' }}>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', wordBreak: 'break-all' }}>{adminUser?.email}</p>
@@ -465,25 +492,25 @@ const AdminDashboard = () => {
               ) : bookings.length === 0 ? (
                 <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '3rem' }}>No bookings yet.</p>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
+                <div className="table-container">
                   <table className="data-table">
                     <thead><tr><th>Guest</th><th>Room</th><th>Check In</th><th>Check Out</th><th>Amount</th><th>Status</th></tr></thead>
                     <tbody>
                       {paginate(bookings, 'bookings').map(b => (
                         <tr key={b.id}>
-                          <td><div style={{ fontWeight: 600 }}>{b.guest_name || '—'}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{b.guest_email}</div></td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_name || (b.room_id ? `Room #${b.room_id}` : '—')}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_in}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_out}</td>
-                          <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
-                          <td>{statusBadge(b.status)}</td>
+                          <td data-label="Guest"><div style={{ fontWeight: 600 }}>{b.guest_name || '—'}</div><div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{b.guest_email}</div></td>
+                          <td data-label="Room" style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.room_name || (b.room_id ? `Room #${b.room_id}` : '—')}</td>
+                          <td data-label="Check In" style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_in}</td>
+                          <td data-label="Check Out" style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_out}</td>
+                          <td data-label="Amount" style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
+                          <td data-label="Status">{statusBadge(b.status)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <PageControls tab="bookings" total={bookings.length} />
                 </div>
               )}
+              <PageControls tab="bookings" total={bookings.length} />
             </div>
 
             {/* Latest Reviews preview */}

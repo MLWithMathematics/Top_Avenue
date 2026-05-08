@@ -182,6 +182,7 @@ const CustomerDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [complaints, setComplaints] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState(null);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
@@ -420,8 +421,34 @@ const CustomerDashboard = () => {
         </div>
       )}
 
+      {/* ── Mobile Sidebar Toggle ────────────────────────── */}
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        style={{
+          position: 'fixed', bottom: '1.5rem', right: '1.5rem',
+          width: '56px', height: '56px', borderRadius: '50%',
+          background: 'var(--primary-color)', color: '#fff',
+          display: 'none', alignItems: 'center', justifyContent: 'center',
+          boxShadow: 'var(--shadow-lg)', zIndex: 3000, border: 'none', cursor: 'pointer'
+        }}
+        className="mobile-sidebar-toggle"
+      >
+        {isSidebarOpen ? <X size={24} /> : <LayoutDashboard size={24} />}
+      </button>
+
+      {/* ── Sidebar Overlay ────────────────────────── */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2900 }}
+        />
+      )}
+
       {/* ── Sidebar ──────────────────────────────────────────── */}
-      <aside style={{ width: '240px', background: '#ffffff', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))' }}>
+      <aside 
+        className={`dashboard-sidebar ${isSidebarOpen ? 'open' : ''}`}
+        style={{ width: '240px', background: '#ffffff', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 'var(--nav-height)', height: 'calc(100vh - var(--nav-height))', zIndex: 2950 }}
+      >
         <div style={{ padding: '1.5rem 1rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-color), var(--accent-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#1a1a2e', fontSize: '1.1rem', flexShrink: 0 }}>
             {(profile.full_name || user?.email || 'G')[0].toUpperCase()}
@@ -433,11 +460,11 @@ const CustomerDashboard = () => {
         </div>
 
         <nav style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
-          <NavItem icon={LayoutDashboard}      label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={setActiveTab} />
-          <NavItem icon={BedDouble}            label="My Bookings" id="bookings"    active={activeTab==='bookings'}    onClick={setActiveTab} />
-          <NavItem icon={Star}                 label="My Reviews"  id="reviews"     active={activeTab==='reviews'}     onClick={setActiveTab} />
-          <NavItem icon={MessageSquareWarning} label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={setActiveTab} />
-          <NavItem icon={User}                 label="Profile"     id="profile"     active={activeTab==='profile'}     onClick={setActiveTab} />
+          <NavItem icon={LayoutDashboard}      label="Overview"    id="overview"    active={activeTab==='overview'}    onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <NavItem icon={BedDouble}            label="My Bookings" id="bookings"    active={activeTab==='bookings'}    onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <NavItem icon={Star}                 label="My Reviews"  id="reviews"     active={activeTab==='reviews'}     onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <NavItem icon={MessageSquareWarning} label="Complaints"  id="complaints"  active={activeTab==='complaints'}  onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
+          <NavItem icon={User}                 label="Profile"     id="profile"     active={activeTab==='profile'}     onClick={(id) => { setActiveTab(id); setIsSidebarOpen(false); }} />
         </nav>
 
         <div style={{ padding: '1rem', borderTop: '1px solid var(--glass-border)' }}>
@@ -486,18 +513,18 @@ const CustomerDashboard = () => {
                   <button className="btn btn-primary" onClick={() => navigate('/book')} style={{ marginTop: '1rem' }}>Book a Room</button>
                 </div>
               ) : (
-                <div style={{ overflowX: 'auto' }}>
+                <div className="table-container">
                   <table className="data-table">
                     <thead><tr><th>Room</th><th>Check In</th><th>Check Out</th><th>Amount</th><th>Status</th><th>Review</th></tr></thead>
                     <tbody>
                       {bookings.slice(0, 5).map(b => (
                         <tr key={b.id}>
-                          <td style={{ fontWeight: 600 }}>{b.room_name || `Room #${b.room_id}`}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_in}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_out}</td>
-                          <td style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
-                          <td>{statusBadge(b.status)}</td>
-                          <td>
+                          <td data-label="Room" style={{ fontWeight: 600 }}>{b.room_name || `Room #${b.room_id}`}</td>
+                          <td data-label="Check In" style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_in}</td>
+                          <td data-label="Check Out" style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{b.check_out}</td>
+                          <td data-label="Amount" style={{ fontWeight: 700, color: 'var(--accent-dark)' }}>${b.total_price}</td>
+                          <td data-label="Status">{statusBadge(b.status)}</td>
+                          <td data-label="Review">
                             {b.status === 'confirmed' || b.status === 'completed' ? (
                               hasReviewed(b.id)
                                 ? <span className="badge badge-neutral">Reviewed</span>
